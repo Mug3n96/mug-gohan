@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { initDb } from './db/database';
+import { runMigrations } from './db/schema';
 import { authMiddleware } from './middleware/auth';
 import recipesRouter from './routes/recipes';
 import chatRouter from './routes/chat';
@@ -17,6 +18,7 @@ app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 
 initDb();
+runMigrations();
 
 setupSwagger(app);
 
