@@ -1,0 +1,3 @@
+deine-domain.de {
+    reverse_proxy backend:3000
+}

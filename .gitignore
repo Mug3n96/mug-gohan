@@ -1,3 +1,12 @@
+# Project specific
+CLAUDE.md
+.claude/
+.env
+data/
+backend/data/
+backend/node_modules/
+backend/dist/
+
 # Miscellaneous
 *.class
 *.lock
