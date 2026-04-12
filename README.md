@@ -90,6 +90,28 @@ cd frontend
 flutter run -d chrome
 ```
 
+The Flutter dev server runs on its own port with hot reload. It talks to the backend on `http://localhost:3000`.
+
+### Building for production
+
+After the frontend is done, build it and copy it into the backend:
+
+```bash
+cd frontend
+flutter build web
+cp -r build/web/* ../backend/public/
+```
+
+The backend then serves the Flutter web app on `http://localhost:3000`.
+
+### Building the Android APK
+
+```bash
+cd frontend
+flutter build apk
+# APK is at build/app/outputs/flutter-apk/app-release.apk
+```
+
 ## Environment Variables
 
 | Variable | Description | Default |
