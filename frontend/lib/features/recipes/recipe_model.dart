@@ -26,20 +26,20 @@ class Ingredient {
       };
 }
 
-class Step {
+class RecipeStep {
   final int order;
   final String description;
   final int? durationMin;
   final String? tip;
 
-  const Step({
+  const RecipeStep({
     required this.order,
     required this.description,
     this.durationMin,
     this.tip,
   });
 
-  factory Step.fromJson(Map<String, dynamic> j) => Step(
+  factory RecipeStep.fromJson(Map<String, dynamic> j) => RecipeStep(
         order: j['order'] as int,
         description: j['description'] as String,
         durationMin: j['duration_min'] as int?,
@@ -66,7 +66,7 @@ class Recipe {
   final String category;
   final List<String> tags;
   final List<Ingredient> ingredients;
-  final List<Step> steps;
+  final List<RecipeStep> steps;
   final String notes;
   final String? imageUrl;
   final String status;
@@ -108,7 +108,7 @@ class Recipe {
             .map((e) => Ingredient.fromJson(e as Map<String, dynamic>))
             .toList(),
         steps: (j['steps'] as List)
-            .map((e) => Step.fromJson(e as Map<String, dynamic>))
+            .map((e) => RecipeStep.fromJson(e as Map<String, dynamic>))
             .toList(),
         notes: j['notes'] as String,
         imageUrl: j['image_url'] as String?,
