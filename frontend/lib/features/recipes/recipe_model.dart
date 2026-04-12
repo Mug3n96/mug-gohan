@@ -62,6 +62,8 @@ class Recipe {
   final String prepTime;
   final String cookTime;
   final String difficulty;
+  final String cuisine;
+  final String category;
   final List<String> tags;
   final List<Ingredient> ingredients;
   final List<Step> steps;
@@ -79,6 +81,8 @@ class Recipe {
     required this.prepTime,
     required this.cookTime,
     required this.difficulty,
+    required this.cuisine,
+    required this.category,
     required this.tags,
     required this.ingredients,
     required this.steps,
@@ -97,6 +101,8 @@ class Recipe {
         prepTime: j['prep_time'] as String,
         cookTime: j['cook_time'] as String,
         difficulty: j['difficulty'] as String,
+        cuisine: j['cuisine'] as String? ?? '',
+        category: j['category'] as String? ?? '',
         tags: List<String>.from(j['tags'] as List),
         ingredients: (j['ingredients'] as List)
             .map((e) => Ingredient.fromJson(e as Map<String, dynamic>))
@@ -119,6 +125,8 @@ class Recipe {
         'prep_time': prepTime,
         'cook_time': cookTime,
         'difficulty': difficulty,
+        'cuisine': cuisine,
+        'category': category,
         'tags': tags,
         'ingredients': ingredients.map((e) => e.toJson()).toList(),
         'steps': steps.map((e) => e.toJson()).toList(),

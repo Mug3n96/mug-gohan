@@ -12,6 +12,8 @@ export function runMigrations(): void {
       prep_time   TEXT NOT NULL DEFAULT '',
       cook_time   TEXT NOT NULL DEFAULT '',
       difficulty  TEXT NOT NULL DEFAULT 'einfach' CHECK (difficulty IN ('einfach', 'mittel', 'schwer')),
+      cuisine     TEXT NOT NULL DEFAULT '',
+      category    TEXT NOT NULL DEFAULT '',
       tags        TEXT NOT NULL DEFAULT '[]',
       ingredients TEXT NOT NULL DEFAULT '[]',
       steps       TEXT NOT NULL DEFAULT '[]',
@@ -33,6 +35,16 @@ export function runMigrations(): void {
 
     CREATE INDEX IF NOT EXISTS idx_chat_messages_recipe_id ON chat_messages(recipe_id);
   `);
+
+  // Add columns introduced after initial schema (safe to run multiple times)
+  const columns = db.prepare(`PRAGMA table_info(recipes)`).all() as { name: string }[];
+  const colNames = columns.map(c => c.name);
+  if (!colNames.includes('cuisine')) {
+    db.exec(`ALTER TABLE recipes ADD COLUMN cuisine TEXT NOT NULL DEFAULT ''`);
+  }
+  if (!colNames.includes('category')) {
+    db.exec(`ALTER TABLE recipes ADD COLUMN category TEXT NOT NULL DEFAULT ''`);
+  }
 
   console.log('Database migrations complete');
 }

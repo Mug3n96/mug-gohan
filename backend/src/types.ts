@@ -20,6 +20,8 @@ export interface Recipe {
   prep_time: string;
   cook_time: string;
   difficulty: 'einfach' | 'mittel' | 'schwer';
+  cuisine: string;
+  category: string;
   tags: string[];
   ingredients: Ingredient[];
   steps: Step[];

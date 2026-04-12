@@ -81,6 +81,8 @@ router.post('/', (req: Request, res: Response) => {
     prep_time: req.body.prep_time ?? '',
     cook_time: req.body.cook_time ?? '',
     difficulty: req.body.difficulty ?? 'einfach',
+    cuisine: req.body.cuisine ?? '',
+    category: req.body.category ?? '',
     tags: req.body.tags ?? [],
     ingredients: req.body.ingredients ?? [],
     steps: req.body.steps ?? [],
@@ -92,8 +94,8 @@ router.post('/', (req: Request, res: Response) => {
   };
 
   db.prepare(`
-    INSERT INTO recipes (id, title, description, portions, prep_time, cook_time, difficulty, tags, ingredients, steps, notes, image_url, status, created_at, updated_at)
-    VALUES (@id, @title, @description, @portions, @prep_time, @cook_time, @difficulty, @tags, @ingredients, @steps, @notes, @image_url, @status, @created_at, @updated_at)
+    INSERT INTO recipes (id, title, description, portions, prep_time, cook_time, difficulty, cuisine, category, tags, ingredients, steps, notes, image_url, status, created_at, updated_at)
+    VALUES (@id, @title, @description, @portions, @prep_time, @cook_time, @difficulty, @cuisine, @category, @tags, @ingredients, @steps, @notes, @image_url, @status, @created_at, @updated_at)
   `).run({
     ...recipe,
     tags: JSON.stringify(recipe.tags),
@@ -138,7 +140,8 @@ router.put('/:id', (req: Request, res: Response) => {
 
   db.prepare(`
     UPDATE recipes SET title=@title, description=@description, portions=@portions, prep_time=@prep_time,
-    cook_time=@cook_time, difficulty=@difficulty, tags=@tags, ingredients=@ingredients, steps=@steps,
+    cook_time=@cook_time, difficulty=@difficulty, cuisine=@cuisine, category=@category,
+    tags=@tags, ingredients=@ingredients, steps=@steps,
     notes=@notes, image_url=@image_url, status=@status, updated_at=@updated_at WHERE id=@id
   `).run({
     ...updated,
