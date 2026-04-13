@@ -3,29 +3,48 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/content_constraint.dart';
 import '../../features/auth/auth_provider.dart';
 import 'recipe_model.dart';
 import 'recipes_provider.dart';
 
-class RecipeListScreen extends ConsumerWidget {
+class RecipeListScreen extends ConsumerStatefulWidget {
   const RecipeListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RecipeListScreen> createState() => _RecipeListScreenState();
+}
+
+class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
+  final Set<String> _selectedTags = {};
+
+  @override
+  Widget build(BuildContext context) {
     final recipesAsync = ref.watch(recipeListNotifierProvider);
+
+    final showFab = recipesAsync.hasValue && recipesAsync.value!.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('mug-gohan'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () async {
-              await ref.read(authNotifierProvider.notifier).logout();
-            },
+        titleSpacing: 0,
+        automaticallyImplyLeading: false,
+        scrolledUnderElevation: 0,
+        title: ContentConstraint(
+          child: Row(
+            children: [
+              const SizedBox(width: 16),
+              const Expanded(child: Text('mug-gohan')),
+              IconButton(
+                icon: const Icon(Icons.logout),
+                tooltip: 'Logout',
+                onPressed: () async {
+                  await ref.read(authNotifierProvider.notifier).logout();
+                },
+              ),
+              const SizedBox(width: 8),
+            ],
           ),
-        ],
+        ),
       ),
       body: recipesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -33,19 +52,60 @@ class RecipeListScreen extends ConsumerWidget {
           message: e.toString(),
           onRetry: () => ref.invalidate(recipeListNotifierProvider),
         ),
-        data: (recipes) => recipes.isEmpty
-            ? _EmptyState(onCreateTap: () => _createRecipe(context, ref))
-            : _RecipeGrid(
-                recipes: recipes,
-                onCreateTap: () => _createRecipe(context, ref),
-              ),
+        data: (recipes) {
+          if (recipes.isEmpty) {
+            return _EmptyState(onCreateTap: () => _createRecipe(context, ref));
+          }
+
+          final allTags = {
+            for (final r in recipes) ...r.tags,
+          }.toList()..sort();
+
+          final filtered = _selectedTags.isEmpty
+              ? recipes
+              : recipes
+                  .where((r) => _selectedTags.any((t) => r.tags.contains(t)))
+                  .toList();
+
+          return ContentConstraint(
+            child: Stack(
+              children: [
+                Column(
+                  children: [
+                    if (allTags.isNotEmpty)
+                      _TagFilterBar(
+                        tags: allTags,
+                        selected: _selectedTags,
+                        onToggle: (tag) => setState(() {
+                          if (_selectedTags.contains(tag)) {
+                            _selectedTags.remove(tag);
+                          } else {
+                            _selectedTags.add(tag);
+                          }
+                        }),
+                      ),
+                    Expanded(
+                      child: _RecipeGrid(
+                        recipes: filtered,
+                        onCreateTap: () => _createRecipe(context, ref),
+                      ),
+                    ),
+                  ],
+                ),
+                if (showFab)
+                  Positioned(
+                    right: 16,
+                    bottom: 16,
+                    child: FloatingActionButton(
+                      onPressed: () => _createRecipe(context, ref),
+                      child: const Icon(Icons.add),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
       ),
-      floatingActionButton: recipesAsync.hasValue && recipesAsync.value!.isNotEmpty
-          ? FloatingActionButton(
-              onPressed: () => _createRecipe(context, ref),
-              child: const Icon(Icons.add),
-            )
-          : null,
     );
   }
 
@@ -63,6 +123,51 @@ class RecipeListScreen extends ConsumerWidget {
   }
 }
 
+// ─── Tag filter bar ────────────────────────────────────────────────────────────
+
+class _TagFilterBar extends StatelessWidget {
+  const _TagFilterBar({
+    required this.tags,
+    required this.selected,
+    required this.onToggle,
+  });
+
+  final List<String> tags;
+  final Set<String> selected;
+  final ValueChanged<String> onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        itemCount: tags.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
+        itemBuilder: (context, i) {
+          final tag = tags[i];
+          final active = selected.contains(tag);
+          return FilterChip(
+            label: Text(tag, style: const TextStyle(fontSize: 12)),
+            selected: active,
+            onSelected: (_) => onToggle(tag),
+            visualDensity: VisualDensity.compact,
+            selectedColor: AppTheme.primary.withAlpha(30),
+            checkmarkColor: AppTheme.primary,
+            side: BorderSide(
+              color: active ? AppTheme.primary : Colors.transparent,
+              width: 1,
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ─── Grid ──────────────────────────────────────────────────────────────────────
+
 class _RecipeGrid extends StatelessWidget {
   const _RecipeGrid({required this.recipes, required this.onCreateTap});
 
@@ -71,16 +176,28 @@ class _RecipeGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (recipes.isEmpty) {
+      return Center(
+        child: Text(
+          'Keine Rezepte für diese Tags',
+          style: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.copyWith(color: AppTheme.textSecondary),
+        ),
+      );
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final crossAxisCount = constraints.maxWidth > 600 ? 2 : 1;
         return GridView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 2.2,
+            childAspectRatio: crossAxisCount == 1 ? 2.0 : 1.7,
           ),
           itemCount: recipes.length,
           itemBuilder: (context, index) => _RecipeCard(recipe: recipes[index]),
@@ -90,10 +207,67 @@ class _RecipeGrid extends StatelessWidget {
   }
 }
 
+// ─── Card ──────────────────────────────────────────────────────────────────────
+
 class _RecipeCard extends ConsumerWidget {
   const _RecipeCard({required this.recipe});
 
   final Recipe recipe;
+
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.delete_outline, size: 28, color: AppTheme.error),
+              const SizedBox(height: 12),
+              Text(
+                recipe.hasTitle ? recipe.title : 'Neues Rezept',
+                style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Wird unwiderruflich gelöscht.',
+                style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      style: FilledButton.styleFrom(
+                          backgroundColor: AppTheme.error),
+                      child: const Text('Löschen'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Abbrechen'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      await ref.read(recipeListNotifierProvider.notifier).delete(recipe.id);
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -103,11 +277,13 @@ class _RecipeCard extends ConsumerWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => context.push('/recipes/${recipe.id}'),
+        onLongPress: () => _confirmDelete(context, ref),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Title row
               Row(
                 children: [
                   Expanded(
@@ -123,6 +299,7 @@ class _RecipeCard extends ConsumerWidget {
                   ),
                   if (recipe.isDraft)
                     Container(
+                      margin: const EdgeInsets.only(right: 4),
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppTheme.primary.withAlpha(30),
@@ -135,20 +312,29 @@ class _RecipeCard extends ConsumerWidget {
                         ),
                       ),
                     ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    color: theme.disabledColor,
+                    visualDensity: VisualDensity.compact,
+                    tooltip: 'Löschen',
+                    onPressed: () => _confirmDelete(context, ref),
+                  ),
                 ],
               ),
+              // Description
               if (recipe.description.isNotEmpty) ...[
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   recipe.description,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AppTheme.textSecondary,
                   ),
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
               const Spacer(),
+              // Bottom row: meta + tags
               Row(
                 children: [
                   if (recipe.prepTime.isNotEmpty || recipe.cookTime.isNotEmpty)
@@ -167,9 +353,8 @@ class _RecipeCard extends ConsumerWidget {
                   ],
                   if (recipe.tags.isNotEmpty) ...[
                     const SizedBox(width: 8),
-                    _MetaChip(
-                      icon: Icons.label_outline,
-                      label: recipe.tags.first,
+                    Expanded(
+                      child: _TagRow(tags: recipe.tags),
                     ),
                   ],
                 ],
@@ -181,6 +366,41 @@ class _RecipeCard extends ConsumerWidget {
     );
   }
 }
+
+// ─── Tag row on card ───────────────────────────────────────────────────────────
+
+class _TagRow extends StatelessWidget {
+  const _TagRow({required this.tags});
+  final List<String> tags;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 4,
+      runSpacing: 4,
+      alignment: WrapAlignment.end,
+      children: tags
+          .take(3)
+          .map((tag) => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withAlpha(20),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Text(
+                  tag,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppTheme.primary,
+                        fontSize: 10,
+                      ),
+                ),
+              ))
+          .toList(),
+    );
+  }
+}
+
+// ─── Meta chip ─────────────────────────────────────────────────────────────────
 
 class _MetaChip extends StatelessWidget {
   const _MetaChip({required this.icon, required this.label});
@@ -205,6 +425,8 @@ class _MetaChip extends StatelessWidget {
     );
   }
 }
+
+// ─── Empty state ───────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.onCreateTap});
@@ -249,6 +471,8 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
+
+// ─── Error view ────────────────────────────────────────────────────────────────
 
 class _ErrorView extends StatelessWidget {
   const _ErrorView({required this.message, required this.onRetry});

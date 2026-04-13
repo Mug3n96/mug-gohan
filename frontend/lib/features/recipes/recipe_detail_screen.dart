@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/content_constraint.dart';
 import 'chat_sheet.dart';
 import 'recipe_detail_provider.dart';
 import 'recipe_model.dart';
@@ -195,65 +196,70 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              _buildAppBar(context),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate(
-                    _editMode ? _editSections(context) : _viewSections(context),
+      body: ContentConstraint(
+        child: Stack(
+          children: [
+            CustomScrollView(
+              slivers: [
+                _buildAppBar(context),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate(
+                      _editMode ? _editSections(context) : _viewSections(context),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          if (_editMode)
-            Positioned(
-              right: 16,
-              bottom: 16,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  FloatingActionButton(
-                    heroTag: 'fab_chat',
-                    onPressed: () => setState(() => _chatOpen = !_chatOpen),
-                    tooltip: 'KI-Assistent',
-                    backgroundColor: _chatOpen
-                        ? AppTheme.primary
-                        : null,
-                    foregroundColor: _chatOpen ? Colors.white : null,
-                    child: Icon(_chatOpen
-                        ? Icons.smart_toy
-                        : Icons.smart_toy_outlined),
-                  ),
-                  const SizedBox(width: 12),
-                  FloatingActionButton(
-                    heroTag: 'fab_done',
-                    onPressed: _exitEditMode,
-                    tooltip: 'Fertig',
-                    child: const Icon(Icons.check_rounded),
-                  ),
-                ],
-              ),
+              ],
             ),
-          if (_editMode)
-            _ChatPanel(
-              open: _chatOpen,
-              recipeId: widget.id,
-              onClose: () => setState(() => _chatOpen = false),
-            ),
-        ],
+            // View mode FAB
+            if (!_editMode)
+              Positioned(
+                right: 16,
+                bottom: 16,
+                child: FloatingActionButton(
+                  onPressed: _enterEditMode,
+                  tooltip: 'Bearbeiten',
+                  child: const Icon(Icons.edit_outlined),
+                ),
+              ),
+            // Edit mode FABs (behind chat)
+            if (_editMode)
+              Positioned(
+                right: 16,
+                bottom: 16,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FloatingActionButton(
+                      heroTag: 'fab_chat',
+                      onPressed: () => setState(() => _chatOpen = !_chatOpen),
+                      tooltip: 'KI-Assistent',
+                      backgroundColor: _chatOpen ? AppTheme.primary : null,
+                      foregroundColor: _chatOpen ? Colors.white : null,
+                      child: Icon(_chatOpen
+                          ? Icons.smart_toy
+                          : Icons.smart_toy_outlined),
+                    ),
+                    const SizedBox(width: 12),
+                    FloatingActionButton(
+                      heroTag: 'fab_done',
+                      onPressed: _exitEditMode,
+                      tooltip: 'Fertig',
+                      child: const Icon(Icons.check_rounded),
+                    ),
+                  ],
+                ),
+              ),
+            if (_editMode)
+              _ChatPanel(
+                open: _chatOpen,
+                recipeId: widget.id,
+                onClose: () => setState(() => _chatOpen = false),
+              ),
+          ],
+        ),
       ),
-      floatingActionButton: _editMode
-          ? null
-          : FloatingActionButton(
-              onPressed: _enterEditMode,
-              tooltip: 'Bearbeiten',
-              child: const Icon(Icons.edit_outlined),
-            ),
     );
   }
 
@@ -266,6 +272,8 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
       expandedHeight:
           (!_editMode && recipe.imageUrl != null) ? 240 : 0,
       pinned: true,
+      elevation: 0,
+      scrolledUnderElevation: 0,
       leading: _editMode
           ? IconButton(
               icon: const Icon(Icons.arrow_back),
@@ -1039,7 +1047,7 @@ class _InlineIngredientTileState extends State<_InlineIngredientTile> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.only(top: 8, bottom: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1094,13 +1102,16 @@ class _InlineIngredientTileState extends State<_InlineIngredientTile> {
           ),
           if (_groupFocused || _group.text.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(left: 30),
-              child: _InlineTextField(
-                controller: _group,
-                focusNode: _groupFocus,
-                onChanged: _notify,
-                style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                hint: 'Gruppe (z.B. Teig, Sauce)',
+              padding: const EdgeInsets.only(left: 30, top: 4),
+              child: SizedBox(
+                width: 180,
+                child: _InlineTextField(
+                  controller: _group,
+                  focusNode: _groupFocus,
+                  onChanged: _notify,
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                  hint: 'Gruppe (z.B. Teig, Sauce)',
+                ),
               ),
             )
           else
@@ -1112,7 +1123,7 @@ class _InlineIngredientTileState extends State<_InlineIngredientTile> {
                 );
               },
               child: Padding(
-                padding: const EdgeInsets.only(left: 30, top: 2, bottom: 2),
+                padding: const EdgeInsets.only(left: 30, top: 3, bottom: 2),
                 child: Text(
                   '+ Gruppe',
                   style: TextStyle(fontSize: 11, color: AppTheme.textSecondary.withAlpha(100)),
