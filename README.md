@@ -24,6 +24,7 @@ The name comes from Japanese: 無限 (mugen) = "unlimited" + ごはん (gohan) =
 ### Requirements
 
 - Docker + Docker Compose
+- Flutter SDK (for building)
 
 ### Setup
 
@@ -36,11 +37,13 @@ cd mug-gohan
 cp .env.example .env
 # Edit .env: set API_KEY and choose your Ollama model
 
-# 3. Start
-docker compose up -d
+# 3. Build and start
+./build.sh
 ```
 
 Open [http://localhost:3000](http://localhost:3000) and enter your API key.
+
+`build.sh` builds the Flutter web app, copies it into the backend, and starts all Docker containers.
 
 ### With Caddy (automatic HTTPS)
 
@@ -52,19 +55,19 @@ docker compose -f docker-compose.caddy.yml up -d
 
 ### Ollama Models
 
-**Local model** (requires GPU or sufficient RAM):
+**Local model** (requires sufficient RAM, ~7 GB for small models):
 ```env
-OLLAMA_MODEL=gemma4:e4b
+OLLAMA_MODEL=gemma4:e2b
 ```
 
 **Cloud model** (no local GPU needed, requires Ollama account):
 ```env
-OLLAMA_MODEL=gemma4:e4b-cloud
+OLLAMA_MODEL=gemma4:e2b-cloud
 ```
 
 Pull the model once after starting:
 ```bash
-docker compose exec ollama ollama pull gemma4:e4b
+docker compose exec ollama ollama pull gemma4:e2b
 ```
 
 ## Development
@@ -73,42 +76,43 @@ docker compose exec ollama ollama pull gemma4:e4b
 
 - Node.js 20+
 - Flutter SDK
-- Ollama (local)
+- Ollama running locally
 
 ### Backend
 
 ```bash
 cd backend
 npm install
-npm run dev
+npm run dev   # starts on http://localhost:3000 with hot reload
 ```
 
 ### Frontend
 
 ```bash
 cd frontend
-flutter run -d chrome
+flutter run -d chrome --web-port=8080
+# or with a specific browser:
+CHROME_EXECUTABLE=/usr/bin/brave flutter run -d chrome --web-port=8080
 ```
 
-The Flutter dev server runs on its own port with hot reload. It talks to the backend on `http://localhost:3000`.
+The Flutter dev server runs on port 8080 with hot reload. It talks to the backend on `http://localhost:3000`.
 
 ### Building for production
 
-After the frontend is done, build it and copy it into the backend:
-
 ```bash
-cd frontend
-flutter build web
-cp -r build/web/* ../backend/public/
+./build.sh
 ```
 
-The backend then serves the Flutter web app on `http://localhost:3000`.
+This script:
+1. Builds the Flutter web app (`flutter build web --release`)
+2. Copies the output to `backend/public/`
+3. Rebuilds and restarts the Docker containers
 
 ### Building the Android APK
 
 ```bash
 cd frontend
-flutter build apk
+flutter build apk --release
 # APK is at build/app/outputs/flutter-apk/app-release.apk
 ```
 
@@ -118,7 +122,7 @@ flutter build apk
 |---|---|---|
 | `API_KEY` | Login key for the app | – |
 | `OLLAMA_HOST` | Ollama API URL | `http://ollama:11434` |
-| `OLLAMA_MODEL` | Model to use | `gemma4:e4b` |
+| `OLLAMA_MODEL` | Model to use | `gemma4:e2b` |
 | `OLLAMA_API_KEY` | Ollama account key (cloud models only) | – |
 | `PORT` | Backend port | `3000` |
-| `DATA_DIR` | SQLite database directory | `/app/data` |
+| `DATA_DIR` | SQLite database directory | `./data` |

@@ -6,6 +6,8 @@ data/
 backend/data/
 backend/node_modules/
 backend/dist/
+backend/public/*
+!backend/public/.gitkeep
 
 # Miscellaneous
 *.class
