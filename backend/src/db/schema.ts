@@ -46,5 +46,11 @@ export function runMigrations(): void {
     db.exec(`ALTER TABLE recipes ADD COLUMN category TEXT NOT NULL DEFAULT ''`);
   }
 
+  const chatCols = db.prepare(`PRAGMA table_info(chat_messages)`).all() as { name: string }[];
+  const chatColNames = chatCols.map(c => c.name);
+  if (!chatColNames.includes('proposal_status')) {
+    db.exec(`ALTER TABLE chat_messages ADD COLUMN proposal_status TEXT CHECK (proposal_status IN ('accepted', 'rejected'))`);
+  }
+
   console.log('Database migrations complete');
 }

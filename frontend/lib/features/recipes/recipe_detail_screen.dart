@@ -201,8 +201,7 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
             slivers: [
               _buildAppBar(context),
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                    16, 16, 16, _editMode ? 220 : 80),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate(
                     _editMode ? _editSections(context) : _viewSections(context),
@@ -211,6 +210,35 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
               ),
             ],
           ),
+          if (_editMode)
+            Positioned(
+              right: 16,
+              bottom: 16,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FloatingActionButton(
+                    heroTag: 'fab_chat',
+                    onPressed: () => setState(() => _chatOpen = !_chatOpen),
+                    tooltip: 'KI-Assistent',
+                    backgroundColor: _chatOpen
+                        ? AppTheme.primary
+                        : null,
+                    foregroundColor: _chatOpen ? Colors.white : null,
+                    child: Icon(_chatOpen
+                        ? Icons.smart_toy
+                        : Icons.smart_toy_outlined),
+                  ),
+                  const SizedBox(width: 12),
+                  FloatingActionButton(
+                    heroTag: 'fab_done',
+                    onPressed: _exitEditMode,
+                    tooltip: 'Fertig',
+                    child: const Icon(Icons.check_rounded),
+                  ),
+                ],
+              ),
+            ),
           if (_editMode)
             _ChatPanel(
               open: _chatOpen,
@@ -238,17 +266,43 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
       expandedHeight:
           (!_editMode && recipe.imageUrl != null) ? 240 : 0,
       pinned: true,
+      leading: _editMode
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back),
+              tooltip: 'Fertig',
+              onPressed: _exitEditMode,
+            )
+          : null,
       title: _editMode
-          ? TextField(
-              controller: _titleCtrl,
-              onChanged: (_) => _scheduleAutoSave(),
-              style: Theme.of(context).textTheme.titleLarge,
-              decoration: const InputDecoration(
-                hintText: 'Rezeptname',
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
+          ? Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: TextField(
+                    controller: _titleCtrl,
+                    onChanged: (_) => _scheduleAutoSave(),
+                    style: Theme.of(context).textTheme.titleLarge,
+                    decoration: InputDecoration(
+                      hintText: 'Rezeptname',
+                      hintStyle: TextStyle(color: Theme.of(context).disabledColor),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: _DashedBorderPainter(color: AppTheme.primary.withAlpha(55)),
+                    ),
+                  ),
+                ),
+              ],
             )
           : Text(
               recipe.hasTitle ? recipe.title : 'Neues Rezept',
@@ -274,21 +328,6 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
                   padding: EdgeInsets.symmetric(horizontal: 12),
                   child: Icon(Icons.check, color: Colors.green, size: 20),
                 ),
-              IconButton(
-                icon: Icon(
-                  _chatOpen
-                      ? Icons.smart_toy
-                      : Icons.smart_toy_outlined,
-                  color: _chatOpen ? AppTheme.primary : null,
-                ),
-                tooltip: 'KI-Assistent',
-                onPressed: () => setState(() => _chatOpen = !_chatOpen),
-              ),
-              IconButton(
-                icon: const Icon(Icons.save_outlined),
-                tooltip: 'Speichern & Schließen',
-                onPressed: _exitEditMode,
-              ),
             ]
           : null,
       flexibleSpace: !_editMode && recipe.imageUrl != null
@@ -334,20 +373,15 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
 
   List<Widget> _editSections(BuildContext context) {
     return [
-      _editMetaFields(context),
-      const SizedBox(height: 20),
+      _editMeta(context),
+      const SizedBox(height: 12),
       _editTagsSection(context),
-      const SizedBox(height: 20),
+      const SizedBox(height: 24),
       _editIngredientsSection(context),
-      const SizedBox(height: 20),
+      const SizedBox(height: 24),
       _editStepsSection(context),
-      const SizedBox(height: 20),
-      _editField(
-        context,
-        label: 'Notizen',
-        controller: _notesCtrl,
-        maxLines: 4,
-      ),
+      const SizedBox(height: 24),
+      _editNotesSection(context),
     ];
   }
 
@@ -529,57 +563,53 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
   // EDIT WIDGETS
   // ────────────────────────���────────────────────────────────��───────────────
 
-  Widget _editMetaFields(BuildContext context) {
+  // Notion-style: same layout as view, text becomes editable in place
+  Widget _editMeta(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _editField(context, label: 'Beschreibung', controller: _descCtrl, maxLines: 3),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _editField(context, label: 'Vorbereitung', controller: _prepTimeCtrl, hint: 'z.B. 10 Min'),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _editField(context, label: 'Kochen', controller: _cookTimeCtrl, hint: 'z.B. 20 Min'),
-            ),
-          ],
+        _InlineTextField(
+          controller: _descCtrl,
+          style: Theme.of(context).textTheme.bodyLarge,
+          hint: 'Beschreibung hinzufügen...',
+          maxLines: null,
+          onChanged: _scheduleAutoSave,
         ),
         const SizedBox(height: 12),
-        Row(
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
-            Expanded(
-              child: _editField(context, label: 'Küche', controller: _cuisineCtrl, hint: 'z.B. Italienisch'),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _editField(context, label: 'Kategorie', controller: _categoryCtrl, hint: 'z.B. Hauptgericht'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Text('Schwierigkeit:', style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(width: 12),
-            SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'einfach', label: Text('Einfach')),
-                ButtonSegment(value: 'mittel', label: Text('Mittel')),
-                ButtonSegment(value: 'schwer', label: Text('Schwer')),
-              ],
-              selected: {_difficulty},
-              onSelectionChanged: (s) {
-                setState(() => _difficulty = s.first);
+            _DifficultyChip(
+              value: _difficulty,
+              onChanged: (v) {
+                setState(() => _difficulty = v);
                 _scheduleAutoSave();
               },
-              style: ButtonStyle(
-                visualDensity: VisualDensity.compact,
-                textStyle: WidgetStateProperty.all(
-                  const TextStyle(fontSize: 12),
-                ),
-              ),
+            ),
+            _EditableChipField(
+              icon: Icons.av_timer_outlined,
+              controller: _prepTimeCtrl,
+              hint: 'Vorb.',
+              onChanged: _scheduleAutoSave,
+            ),
+            _EditableChipField(
+              icon: Icons.local_fire_department_outlined,
+              controller: _cookTimeCtrl,
+              hint: 'Koch',
+              onChanged: _scheduleAutoSave,
+            ),
+            _EditableChipField(
+              icon: Icons.public_outlined,
+              controller: _cuisineCtrl,
+              hint: 'Küche',
+              onChanged: _scheduleAutoSave,
+            ),
+            _EditableChipField(
+              icon: Icons.restaurant_menu_outlined,
+              controller: _categoryCtrl,
+              hint: 'Kategorie',
+              onChanged: _scheduleAutoSave,
             ),
           ],
         ),
@@ -594,6 +624,53 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
                 setState(() => _editPortions = v);
                 _scheduleAutoSave();
               },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _editNotesSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Notizen',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: TextField(
+                controller: _notesCtrl,
+                maxLines: null,
+                onChanged: (_) => _scheduleAutoSave(),
+                decoration: InputDecoration(
+                  hintText: 'Notizen hinzufügen...',
+                  hintStyle: TextStyle(
+                    color: AppTheme.textSecondary.withAlpha(140),
+                    fontStyle: FontStyle.italic,
+                  ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  filled: true,
+                  fillColor: AppTheme.primary.withAlpha(15),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.all(16),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: CustomPaint(
+                  painter: _DashedBorderPainter(
+                    color: AppTheme.primary.withAlpha(60),
+                    radius: 12,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -620,11 +697,11 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
                     _scheduleAutoSave();
                   },
                 )),
-            ActionChip(
-              avatar: const Icon(Icons.add, size: 16),
-              label: const Text('Hinzufügen'),
-              visualDensity: VisualDensity.compact,
-              onPressed: () => _showTagDialog(),
+            _InlineTagInput(
+              onAdd: (tag) {
+                setState(() => _editTags.add(tag));
+                _scheduleAutoSave();
+              },
             ),
           ],
         ),
@@ -638,16 +715,22 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
       children: [
         Text('Zutaten', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
-        ..._editIngredients.asMap().entries.map((e) => _EditIngredientRow(
+        ..._editIngredients.asMap().entries.map((e) => _InlineIngredientTile(
+              key: ValueKey('ing-${e.key}'),
               ingredient: e.value,
-              onEdit: () => _showIngredientDialog(index: e.key),
+              onChanged: (updated) {
+                setState(() => _editIngredients[e.key] = updated);
+                _scheduleAutoSave();
+              },
               onDelete: () {
                 setState(() => _editIngredients.removeAt(e.key));
                 _scheduleAutoSave();
               },
             )),
         TextButton.icon(
-          onPressed: () => _showIngredientDialog(),
+          onPressed: () {
+            setState(() => _editIngredients.add(const Ingredient(name: '', amount: 0, unit: 'g')));
+          },
           icon: const Icon(Icons.add, size: 18),
           label: const Text('Zutat hinzufügen'),
         ),
@@ -661,206 +744,27 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
       children: [
         Text('Zubereitung', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
-        ..._editSteps.asMap().entries.map((e) => _EditStepRow(
+        ..._editSteps.asMap().entries.map((e) => _InlineStepTile(
+              key: ValueKey('step-${e.key}'),
               step: e.value,
               index: e.key,
-              onEdit: () => _showStepDialog(index: e.key),
+              onChanged: (updated) {
+                setState(() => _editSteps[e.key] = updated);
+                _scheduleAutoSave();
+              },
               onDelete: () {
                 setState(() => _editSteps.removeAt(e.key));
                 _scheduleAutoSave();
               },
             )),
         TextButton.icon(
-          onPressed: () => _showStepDialog(),
+          onPressed: () {
+            setState(() => _editSteps.add(RecipeStep(order: _editSteps.length + 1, description: '')));
+          },
           icon: const Icon(Icons.add, size: 18),
           label: const Text('Schritt hinzufügen'),
         ),
       ],
-    );
-  }
-
-  Widget _editField(
-    BuildContext context, {
-    required String label,
-    required TextEditingController controller,
-    int maxLines = 1,
-    String? hint,
-  }) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      onChanged: (_) => _scheduleAutoSave(),
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        border: const OutlineInputBorder(),
-        isDense: true,
-      ),
-    );
-  }
-
-  // ── Dialogs ─────────────────────────────���─────────────────────────────────
-
-  void _showTagDialog() {
-    final ctrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Tag hinzufügen'),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'z.B. vegan'),
-          onSubmitted: (v) {
-            if (v.trim().isNotEmpty) {
-              setState(() => _editTags.add(v.trim()));
-              _scheduleAutoSave();
-            }
-            Navigator.pop(ctx);
-          },
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Abbrechen')),
-          FilledButton(
-            onPressed: () {
-              if (ctrl.text.trim().isNotEmpty) {
-                setState(() => _editTags.add(ctrl.text.trim()));
-                _scheduleAutoSave();
-              }
-              Navigator.pop(ctx);
-            },
-            child: const Text('Hinzufügen'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showIngredientDialog({int? index}) {
-    final existing = index != null ? _editIngredients[index] : null;
-    final nameCtrl = TextEditingController(text: existing?.name ?? '');
-    final amountCtrl = TextEditingController(
-        text: existing != null ? existing.amount.toString() : '');
-    final groupCtrl = TextEditingController(text: existing?.group ?? '');
-    String unit = existing?.unit ?? 'g';
-    const units = ['g', 'ml', 'stk', 'EL', 'TL', 'Prise'];
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDlg) => AlertDialog(
-          title: Text(index == null ? 'Zutat hinzufügen' : 'Zutat bearbeiten'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Name'), autofocus: true),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: amountCtrl,
-                      decoration: const InputDecoration(labelText: 'Menge'),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  DropdownButton<String>(
-                    value: unit,
-                    items: units.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
-                    onChanged: (v) => setDlg(() => unit = v!),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              TextField(controller: groupCtrl, decoration: const InputDecoration(labelText: 'Gruppe (optional)', hintText: 'z.B. Teig')),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Abbrechen')),
-            FilledButton(
-              onPressed: () {
-                final ing = Ingredient(
-                  name: nameCtrl.text.trim(),
-                  amount: num.tryParse(amountCtrl.text) ?? 0,
-                  unit: unit,
-                  group: groupCtrl.text.trim().isEmpty ? null : groupCtrl.text.trim(),
-                );
-                setState(() {
-                  if (index != null) {
-                    _editIngredients[index] = ing;
-                  } else {
-                    _editIngredients.add(ing);
-                  }
-                });
-                _scheduleAutoSave();
-                Navigator.pop(ctx);
-              },
-              child: const Text('Speichern'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showStepDialog({int? index}) {
-    final existing = index != null ? _editSteps[index] : null;
-    final descCtrl = TextEditingController(text: existing?.description ?? '');
-    final durCtrl = TextEditingController(
-        text: existing?.durationMin?.toString() ?? '');
-    final tipCtrl = TextEditingController(text: existing?.tip ?? '');
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(index == null ? 'Schritt hinzufügen' : 'Schritt bearbeiten'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: descCtrl,
-              maxLines: 4,
-              decoration: const InputDecoration(labelText: 'Beschreibung'),
-              autofocus: true,
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: durCtrl,
-              decoration: const InputDecoration(labelText: 'Dauer in Min (optional)'),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: tipCtrl,
-              decoration: const InputDecoration(labelText: 'Tipp (optional)'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Abbrechen')),
-          FilledButton(
-            onPressed: () {
-              final step = RecipeStep(
-                order: (index ?? _editSteps.length) + 1,
-                description: descCtrl.text.trim(),
-                durationMin: int.tryParse(durCtrl.text),
-                tip: tipCtrl.text.trim().isEmpty ? null : tipCtrl.text.trim(),
-              );
-              setState(() {
-                if (index != null) {
-                  _editSteps[index] = step;
-                } else {
-                  _editSteps.add(step);
-                }
-              });
-              _scheduleAutoSave();
-              Navigator.pop(ctx);
-            },
-            child: const Text('Speichern'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -969,69 +873,416 @@ class _IngredientRow extends StatelessWidget {
   }
 }
 
-class _EditIngredientRow extends StatelessWidget {
-  const _EditIngredientRow({
-    required this.ingredient,
-    required this.onEdit,
-    required this.onDelete,
-  });
-  final Ingredient ingredient;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+// ─── Dashed border painter ────────────────────────────────────────────────────
+
+class _DashedBorderPainter extends CustomPainter {
+  const _DashedBorderPainter({required this.color, this.radius = 8.0});
+  final Color color;
+  final double radius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+
+    final path = Path()
+      ..addRRect(RRect.fromRectAndRadius(
+        Rect.fromLTWH(0.75, 0.75, size.width - 1.5, size.height - 1.5),
+        Radius.circular(radius),
+      ));
+
+    const dashLen = 7.0;
+    const gapLen = 4.0;
+    bool draw = true;
+    for (final metric in path.computeMetrics()) {
+      double pos = 0;
+      while (pos < metric.length) {
+        final end = (pos + (draw ? dashLen : gapLen)).clamp(0.0, metric.length);
+        if (draw) canvas.drawPath(metric.extractPath(pos, end), paint);
+        pos = end;
+        draw = !draw;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedBorderPainter old) => old.color != color || old.radius != radius;
+  @override
+  bool operator ==(Object other) => other is _DashedBorderPainter && other.color == color && other.radius == radius;
+  @override
+  int get hashCode => Object.hash(color, radius);
+}
+
+// ─── Shake wrapper ─────────────────────────────────────────────────────────────
+
+class _ShakeWrapper extends StatefulWidget {
+  const _ShakeWrapper({required this.child});
+  final Widget child;
+
+  @override
+  _ShakeWrapperState createState() => _ShakeWrapperState();
+}
+
+class _ShakeWrapperState extends State<_ShakeWrapper>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _shake;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 450));
+    _shake = TweenSequence([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 2.5), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 2.5, end: -2.5), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: -2.5, end: 2.5), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: 2.5, end: 0.0), weight: 1),
+    ]).animate(_ctrl);
+    _timer = Timer(const Duration(seconds: 2), _doShake);
+  }
+
+  void _doShake() {
+    if (!mounted) return;
+    _ctrl.forward(from: 0);
+    _timer = Timer(const Duration(seconds: 9), _doShake);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      dense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-      onTap: onEdit,
-      title: Text(ingredient.name),
-      subtitle: Text('${ingredient.amount} ${ingredient.unit}'
-          '${ingredient.group != null ? " · ${ingredient.group}" : ""}',
-          style: const TextStyle(fontSize: 12)),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete_outline, size: 18),
-        onPressed: onDelete,
-        color: AppTheme.error,
+    return AnimatedBuilder(
+      animation: _shake,
+      builder: (_, child) => Transform.translate(
+        offset: Offset(_shake.value, 0),
+        child: child,
+      ),
+      child: widget.child,
+    );
+  }
+}
+
+// ─── Inline ingredient tile ────────────────────────────────────────────────────
+
+class _InlineIngredientTile extends StatefulWidget {
+  const _InlineIngredientTile({
+    super.key,
+    required this.ingredient,
+    required this.onChanged,
+    required this.onDelete,
+  });
+  final Ingredient ingredient;
+  final ValueChanged<Ingredient> onChanged;
+  final VoidCallback onDelete;
+
+  @override
+  State<_InlineIngredientTile> createState() => _InlineIngredientTileState();
+}
+
+class _InlineIngredientTileState extends State<_InlineIngredientTile> {
+  late TextEditingController _name;
+  late TextEditingController _amount;
+  late TextEditingController _group;
+  late FocusNode _groupFocus;
+  String _unit = 'g';
+  bool _groupFocused = false;
+  static const _units = ['g', 'ml', 'stk', 'EL', 'TL', 'Prise'];
+
+  @override
+  void initState() {
+    super.initState();
+    final i = widget.ingredient;
+    _name = TextEditingController(text: i.name);
+    _amount = TextEditingController(text: i.amount == 0 ? '' : i.amount.toString());
+    _group = TextEditingController(text: i.group ?? '');
+    _unit = i.unit.isEmpty ? 'g' : i.unit;
+    _groupFocus = FocusNode()
+      ..addListener(() => setState(() => _groupFocused = _groupFocus.hasFocus));
+  }
+
+  @override
+  void didUpdateWidget(_InlineIngredientTile old) {
+    super.didUpdateWidget(old);
+    final i = widget.ingredient;
+    if (_name.text != i.name) _name.text = i.name;
+    final a = i.amount == 0 ? '' : i.amount.toString();
+    if (_amount.text != a) _amount.text = a;
+    final g = i.group ?? '';
+    if (_group.text != g) _group.text = g;
+    if (_unit != i.unit && i.unit.isNotEmpty) setState(() => _unit = i.unit);
+  }
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _amount.dispose();
+    _group.dispose();
+    _groupFocus.dispose();
+    super.dispose();
+  }
+
+  void _notify() => widget.onChanged(Ingredient(
+        name: _name.text.trim(),
+        amount: num.tryParse(_amount.text) ?? 0,
+        unit: _unit,
+        group: _group.text.trim().isEmpty ? null : _group.text.trim(),
+      ));
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 6, height: 6,
+                decoration: const BoxDecoration(shape: BoxShape.circle, color: AppTheme.primary),
+              ),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 56,
+                child: _InlineTextField(
+                  controller: _amount,
+                  onChanged: _notify,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                  hint: '0',
+                ),
+              ),
+              const SizedBox(width: 4),
+              DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _unit,
+                  isDense: true,
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  items: _units.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
+                  onChanged: (v) {
+                    setState(() => _unit = v!);
+                    _notify();
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _InlineTextField(
+                  controller: _name,
+                  onChanged: _notify,
+                  style: const TextStyle(fontSize: 15),
+                  hint: 'Zutat',
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, size: 16),
+                onPressed: widget.onDelete,
+                color: AppTheme.textSecondary.withAlpha(140),
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+              ),
+            ],
+          ),
+          if (_groupFocused || _group.text.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(left: 30),
+              child: _InlineTextField(
+                controller: _group,
+                focusNode: _groupFocus,
+                onChanged: _notify,
+                style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                hint: 'Gruppe (z.B. Teig, Sauce)',
+              ),
+            )
+          else
+            GestureDetector(
+              onTap: () {
+                setState(() => _groupFocused = true);
+                WidgetsBinding.instance.addPostFrameCallback(
+                  (_) => _groupFocus.requestFocus(),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(left: 30, top: 2, bottom: 2),
+                child: Text(
+                  '+ Gruppe',
+                  style: TextStyle(fontSize: 11, color: AppTheme.textSecondary.withAlpha(100)),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
 }
 
-class _EditStepRow extends StatelessWidget {
-  const _EditStepRow({
+// ─── Inline step tile ──────────────────────────────────────────────────────────
+
+class _InlineStepTile extends StatefulWidget {
+  const _InlineStepTile({
+    super.key,
     required this.step,
     required this.index,
-    required this.onEdit,
+    required this.onChanged,
     required this.onDelete,
   });
   final RecipeStep step;
   final int index;
-  final VoidCallback onEdit;
+  final ValueChanged<RecipeStep> onChanged;
   final VoidCallback onDelete;
 
   @override
+  State<_InlineStepTile> createState() => _InlineStepTileState();
+}
+
+class _InlineStepTileState extends State<_InlineStepTile> {
+  late TextEditingController _desc;
+  late TextEditingController _duration;
+  late TextEditingController _tip;
+
+  @override
+  void initState() {
+    super.initState();
+    final s = widget.step;
+    _desc = TextEditingController(text: s.description);
+    _duration = TextEditingController(text: s.durationMin?.toString() ?? '');
+    _tip = TextEditingController(text: s.tip ?? '');
+  }
+
+  @override
+  void didUpdateWidget(_InlineStepTile old) {
+    super.didUpdateWidget(old);
+    final s = widget.step;
+    if (_desc.text != s.description) _desc.text = s.description;
+    final dur = s.durationMin?.toString() ?? '';
+    if (_duration.text != dur) _duration.text = dur;
+    final tip = s.tip ?? '';
+    if (_tip.text != tip) _tip.text = tip;
+  }
+
+  @override
+  void dispose() {
+    _desc.dispose();
+    _duration.dispose();
+    _tip.dispose();
+    super.dispose();
+  }
+
+  void _notify() => widget.onChanged(RecipeStep(
+        order: widget.step.order,
+        description: _desc.text,
+        durationMin: int.tryParse(_duration.text),
+        tip: _tip.text.trim().isEmpty ? null : _tip.text.trim(),
+      ));
+
+  @override
   Widget build(BuildContext context) {
-    return ListTile(
-      dense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-      onTap: onEdit,
-      leading: CircleAvatar(
-        radius: 14,
-        backgroundColor: AppTheme.primary,
-        child: Text('${index + 1}',
-            style: const TextStyle(color: Colors.white, fontSize: 12)),
-      ),
-      title: Text(
-        step.description,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontSize: 14),
-      ),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete_outline, size: 18),
-        onPressed: onDelete,
-        color: AppTheme.error,
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 32, height: 32,
+            decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
+            child: Center(
+              child: Text('${widget.index + 1}',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.timer_outlined, size: 13, color: AppTheme.textSecondary),
+                    const SizedBox(width: 3),
+                    SizedBox(
+                      width: 44,
+                      child: _InlineTextField(
+                        controller: _duration,
+                        onChanged: _notify,
+                        keyboardType: TextInputType.number,
+                        style: theme.textTheme.labelSmall?.copyWith(color: AppTheme.textSecondary),
+                        hint: '0',
+                      ),
+                    ),
+                    Text(' Min', style: theme.textTheme.labelSmall?.copyWith(color: AppTheme.textSecondary)),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 16),
+                      onPressed: widget.onDelete,
+                      color: AppTheme.textSecondary.withAlpha(140),
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                _InlineTextField(
+                  controller: _desc,
+                  onChanged: _notify,
+                  maxLines: null,
+                  style: const TextStyle(fontSize: 15, height: 1.5),
+                  hint: 'Schritt beschreiben...',
+                ),
+                const SizedBox(height: 6),
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: TextField(
+                        controller: _tip,
+                        onChanged: (_) => _notify(),
+                        maxLines: null,
+                        style: theme.textTheme.bodySmall?.copyWith(color: Colors.amber.shade800),
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(Icons.lightbulb_outline, size: 15, color: Colors.amber),
+                          prefixIconConstraints: const BoxConstraints(minWidth: 34, minHeight: 0),
+                          hintText: 'Tipp hinzufügen...',
+                          hintStyle: TextStyle(
+                            fontSize: theme.textTheme.bodySmall?.fontSize,
+                            color: Colors.amber.withAlpha(150),
+                            fontStyle: FontStyle.italic,
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          filled: true,
+                          fillColor: Colors.amber.withAlpha(30),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: CustomPaint(
+                          painter: _DashedBorderPainter(
+                            color: Colors.amber.withAlpha(100),
+                            radius: 8,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1108,6 +1359,316 @@ class _StepCard extends StatelessWidget {
   }
 }
 
+// ─── Inline text field (transparent + dashed border hint) ─────────────────────
+
+class _InlineTextField extends StatelessWidget {
+  const _InlineTextField({
+    required this.controller,
+    required this.onChanged,
+    this.style,
+    this.hint,
+    this.maxLines = 1,
+    this.keyboardType,
+    this.focusNode,
+  });
+  final TextEditingController controller;
+  final VoidCallback onChanged;
+  final TextStyle? style;
+  final String? hint;
+  final int? maxLines;
+  final TextInputType? keyboardType;
+  final FocusNode? focusNode;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: TextField(
+            controller: controller,
+            focusNode: focusNode,
+            style: style,
+            maxLines: maxLines,
+            keyboardType: keyboardType,
+            onChanged: (_) => onChanged(),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(
+                color: AppTheme.textSecondary.withAlpha(140),
+                fontStyle: FontStyle.italic,
+                fontSize: style?.fontSize,
+              ),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              filled: true,
+              fillColor: Colors.transparent,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: IgnorePointer(
+            child: CustomPaint(
+              painter: _DashedBorderPainter(color: AppTheme.primary.withAlpha(55)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Editable chip field (chip-shaped container with inline text input) ────────
+
+class _EditableChipField extends StatefulWidget {
+  const _EditableChipField({
+    required this.icon,
+    required this.controller,
+    required this.hint,
+    required this.onChanged,
+  });
+  final IconData icon;
+  final TextEditingController controller;
+  final String hint;
+  final VoidCallback onChanged;
+
+  @override
+  State<_EditableChipField> createState() => _EditableChipFieldState();
+}
+
+class _EditableChipFieldState extends State<_EditableChipField> {
+  final _focus = FocusNode();
+  bool _active = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(() => setState(() => _active = _focus.hasFocus));
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _active = true),
+      onExit: (_) => setState(() => _active = _focus.hasFocus),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(100),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              color: _active
+                  ? AppTheme.textSecondary.withAlpha(35)
+                  : AppTheme.textSecondary.withAlpha(15),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(widget.icon, size: 14, color: AppTheme.textSecondary),
+                  const SizedBox(width: 4),
+                  IntrinsicWidth(
+                    child: TextField(
+                      controller: widget.controller,
+                      focusNode: _focus,
+                      onChanged: (_) => widget.onChanged(),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                      decoration: InputDecoration(
+                        hintText: widget.hint,
+                        hintStyle: TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.textSecondary.withAlpha(150),
+                          fontStyle: FontStyle.italic,
+                        ),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        filled: false,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: _DashedBorderPainter(
+                  color: AppTheme.primary.withAlpha(60),
+                  radius: 100,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Inline tag input chip ─────────────────────────────────────────────────────
+
+class _InlineTagInput extends StatefulWidget {
+  const _InlineTagInput({required this.onAdd});
+  final ValueChanged<String> onAdd;
+
+  @override
+  State<_InlineTagInput> createState() => _InlineTagInputState();
+}
+
+class _InlineTagInputState extends State<_InlineTagInput> {
+  final _ctrl = TextEditingController();
+  final _focus = FocusNode();
+  bool _active = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(() => setState(() => _active = _focus.hasFocus));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final tag = _ctrl.text.trim();
+    if (tag.isNotEmpty) {
+      widget.onAdd(tag);
+      _ctrl.clear();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _active = true),
+      onExit: (_) => setState(() => _active = _focus.hasFocus),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(100),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              color: _active
+                  ? AppTheme.textSecondary.withAlpha(35)
+                  : AppTheme.textSecondary.withAlpha(15),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.add, size: 14, color: AppTheme.primary),
+                  const SizedBox(width: 4),
+                  IntrinsicWidth(
+                    child: TextField(
+                      controller: _ctrl,
+                      focusNode: _focus,
+                      style: const TextStyle(fontSize: 13),
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _submit(),
+                      decoration: InputDecoration(
+                        hintText: 'Tag hinzufügen...',
+                        hintStyle: TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.textSecondary.withAlpha(150),
+                          fontStyle: FontStyle.italic,
+                        ),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        filled: false,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: _DashedBorderPainter(
+                  color: AppTheme.primary.withAlpha(60),
+                  radius: 100,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Difficulty chip (cycles einfach → mittel → schwer) ───────────────────────
+
+class _DifficultyChip extends StatelessWidget {
+  const _DifficultyChip({required this.value, required this.onChanged});
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  static const _values = ['einfach', 'mittel', 'schwer'];
+
+  Color _color() {
+    switch (value) {
+      case 'einfach': return Colors.green;
+      case 'mittel':  return Colors.orange;
+      case 'schwer':  return Colors.red;
+      default:        return AppTheme.textSecondary;
+    }
+  }
+
+  void _cycle() {
+    final i = _values.indexOf(value);
+    onChanged(_values[(i + 1) % _values.length]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = _color();
+    return GestureDetector(
+      onTap: _cycle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: c.withAlpha(25),
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(color: c.withAlpha(80)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.signal_cellular_alt_outlined, size: 14, color: c),
+            const SizedBox(width: 4),
+            Text(
+              value,
+              style: TextStyle(fontSize: 13, color: c, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.unfold_more, size: 13, color: c.withAlpha(180)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ─── Chat side panel ───────────────────────────────────────────────────────────
 
 class _ChatPanel extends StatelessWidget {
@@ -1123,17 +1684,40 @@ class _ChatPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final panelWidth = screenWidth < 500 ? screenWidth : 360.0;
-    final topPad = MediaQuery.of(context).padding.top + kToolbarHeight;
+    final screen = MediaQuery.of(context).size;
+    final isMobile = screen.width < 600;
 
+    if (isMobile) {
+      final panelHeight = (screen.height * 0.5).clamp(200.0, 480.0);
+      return AnimatedPositioned(
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeInOut,
+        left: 12,
+        right: 12,
+        bottom: open ? 8 : -(panelHeight + 16),
+        height: panelHeight,
+        child: ChatSheet(
+          recipeId: recipeId,
+          onProposalAccepted: () {},
+          onClose: onClose,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+            bottomLeft: Radius.circular(16),
+            bottomRight: Radius.circular(16),
+          ),
+        ),
+      );
+    }
+
+    final topPad = MediaQuery.of(context).padding.top + kToolbarHeight;
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 280),
       curve: Curves.easeInOut,
-      right: open ? 0 : -(panelWidth + 8),
+      right: open ? 0 : -368,
       top: topPad,
       bottom: 0,
-      width: panelWidth,
+      width: 360,
       child: Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: ChatSheet(

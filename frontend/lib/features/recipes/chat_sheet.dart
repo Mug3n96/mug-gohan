@@ -12,11 +12,13 @@ class ChatSheet extends ConsumerStatefulWidget {
     required this.recipeId,
     required this.onProposalAccepted,
     required this.onClose,
+    this.borderRadius,
   });
 
   final String recipeId;
   final VoidCallback onProposalAccepted;
   final VoidCallback onClose;
+  final BorderRadiusGeometry? borderRadius;
 
   @override
   ConsumerState<ChatSheet> createState() => _ChatSheetState();
@@ -51,8 +53,13 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
     final text = _inputCtrl.text.trim();
     if (text.isEmpty || _sending) return;
     _inputCtrl.clear();
-    setState(() => _sending = true);
 
+    if (text.startsWith('/')) {
+      await _handleCommand(text);
+      return;
+    }
+
+    setState(() => _sending = true);
     try {
       await ref
           .read(chatNotifierProvider(widget.recipeId).notifier)
@@ -66,6 +73,21 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
       }
     } finally {
       if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _handleCommand(String command) async {
+    switch (command.toLowerCase()) {
+      case '/clear':
+        await ref
+            .read(chatNotifierProvider(widget.recipeId).notifier)
+            .clearChat();
+      default:
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Unbekannter Befehl: $command')),
+          );
+        }
     }
   }
 
@@ -84,10 +106,11 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(16),
-          bottomLeft: Radius.circular(16),
-        ),
+        borderRadius: widget.borderRadius ??
+            const BorderRadius.only(
+              topLeft: Radius.circular(16),
+              bottomLeft: Radius.circular(16),
+            ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(40),
@@ -178,14 +201,13 @@ class _MessageBubble extends ConsumerStatefulWidget {
 }
 
 class _MessageBubbleState extends ConsumerState<_MessageBubble> {
-  bool _accepted = false;
-  bool _rejected = false;
-
   @override
   Widget build(BuildContext context) {
     final msg = widget.message;
     final isUser = msg.isUser;
     final theme = Theme.of(context);
+    final hasProposalCard = !isUser &&
+        (msg.proposal != null || msg.proposalStatus != null);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -219,20 +241,20 @@ class _MessageBubbleState extends ConsumerState<_MessageBubble> {
               ),
             ),
           ),
-          if (msg.proposal != null && !isUser) ...[
+          if (hasProposalCard) ...[
             const SizedBox(height: 8),
             _ProposalCard(
-              proposal: msg.proposal!,
-              accepted: _accepted,
-              rejected: _rejected,
+              proposal: msg.proposal,
+              proposalStatus: msg.proposalStatus,
               onAccept: () async {
                 await ref
                     .read(chatNotifierProvider(widget.recipeId).notifier)
-                    .applyProposal(msg.proposal!);
-                setState(() => _accepted = true);
+                    .applyProposal(widget.message.id, msg.proposal!);
                 widget.onProposalAccepted();
               },
-              onReject: () => setState(() => _rejected = true),
+              onReject: () => ref
+                  .read(chatNotifierProvider(widget.recipeId).notifier)
+                  .rejectProposal(widget.message.id),
             ),
           ],
         ],
@@ -246,15 +268,13 @@ class _MessageBubbleState extends ConsumerState<_MessageBubble> {
 class _ProposalCard extends StatelessWidget {
   const _ProposalCard({
     required this.proposal,
-    required this.accepted,
-    required this.rejected,
+    required this.proposalStatus,
     required this.onAccept,
     required this.onReject,
   });
 
-  final Recipe proposal;
-  final bool accepted;
-  final bool rejected;
+  final Recipe? proposal;
+  final String? proposalStatus; // 'accepted' | 'rejected' | null
   final VoidCallback onAccept;
   final VoidCallback onReject;
 
@@ -262,7 +282,7 @@ class _ProposalCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    if (accepted) {
+    if (proposalStatus == 'accepted') {
       return Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -282,7 +302,7 @@ class _ProposalCard extends StatelessWidget {
       );
     }
 
-    if (rejected) {
+    if (proposalStatus == 'rejected') {
       return Text('Abgelehnt',
           style: theme.textTheme.bodySmall
               ?.copyWith(color: AppTheme.textSecondary));
@@ -335,7 +355,7 @@ class _ProposalCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: FilledButton(
-                    onPressed: onAccept,
+                    onPressed: proposal != null ? onAccept : null,
                     style: FilledButton.styleFrom(
                         visualDensity: VisualDensity.compact),
                     child: const Text('Übernehmen'),
@@ -350,13 +370,12 @@ class _ProposalCard extends StatelessWidget {
   }
 
   Widget _buildSummary(BuildContext context) {
+    final p = proposal;
     final parts = <String>[];
-    if (proposal.title.isNotEmpty) parts.add(proposal.title);
-    if (proposal.ingredients.isNotEmpty) {
-      parts.add('${proposal.ingredients.length} Zutaten');
-    }
-    if (proposal.steps.isNotEmpty) {
-      parts.add('${proposal.steps.length} Schritte');
+    if (p != null) {
+      if (p.title.isNotEmpty) parts.add(p.title);
+      if (p.ingredients.isNotEmpty) parts.add('${p.ingredients.length} Zutaten');
+      if (p.steps.isNotEmpty) parts.add('${p.steps.length} Schritte');
     }
     return Text(
       parts.join(' · '),
@@ -380,6 +399,8 @@ class _EmptyChat extends StatelessWidget {
     'Mach mir einen vollständigen Vorschlag',
   ];
 
+  static const _commands = ['/clear'];
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -400,6 +421,19 @@ class _EmptyChat extends StatelessWidget {
                   onPressed: () => onSuggestionTap(s),
                 ),
               )),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            children: _commands
+                .map((c) => ActionChip(
+                      avatar: const Icon(Icons.terminal, size: 13),
+                      label: Text(c,
+                          style: const TextStyle(
+                              fontSize: 11, fontFamily: 'monospace')),
+                      onPressed: () => onSuggestionTap(c),
+                    ))
+                .toList(),
+          ),
         ],
       ),
     );

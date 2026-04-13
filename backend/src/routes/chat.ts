@@ -112,16 +112,101 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
     const { text, proposal } = parseLlmResponse(raw);
     console.log('Parsed proposal:', proposal ? 'YES' : 'null');
 
+    // Auto-reject any previous unresolved proposals
+    if (proposal) {
+      db.prepare(`
+        UPDATE chat_messages
+        SET proposal_status = 'rejected'
+        WHERE recipe_id = ? AND proposal IS NOT NULL AND proposal_status IS NULL
+      `).run(recipe.id);
+    }
+
     // Save assistant message
     const assistantMsgId = uuidv4();
     db.prepare('INSERT INTO chat_messages (id, recipe_id, role, content, proposal, created_at) VALUES (?, ?, ?, ?, ?, ?)')
       .run(assistantMsgId, recipe.id, 'assistant', text, proposal ? JSON.stringify(proposal) : null, new Date().toISOString());
 
-    res.json({ text, proposal });
+    res.json({ id: assistantMsgId, text, proposal });
   } catch (err) {
     const error = err as Error;
     res.status(502).json({ error: `Ollama unreachable: ${error.message}` });
   }
+});
+
+/**
+ * @openapi
+ * /api/recipes/{id}/chat:
+ *   delete:
+ *     summary: Clear chat history for a recipe
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Cleared
+ */
+router.delete('/:id/chat', (req: Request, res: Response) => {
+  const db = getDb();
+  db.prepare('DELETE FROM chat_messages WHERE recipe_id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+/**
+ * @openapi
+ * /api/recipes/{id}/chat/{msgId}:
+ *   patch:
+ *     summary: Update proposal status of a chat message
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: msgId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               proposal_status:
+ *                 type: string
+ *                 enum: [accepted, rejected]
+ *     responses:
+ *       200:
+ *         description: Updated
+ *       400:
+ *         description: Invalid status
+ *       404:
+ *         description: Message not found
+ */
+router.patch('/:id/chat/:msgId', (req: Request, res: Response) => {
+  const { proposal_status } = req.body;
+  if (proposal_status !== 'accepted' && proposal_status !== 'rejected') {
+    res.status(400).json({ error: 'proposal_status must be accepted or rejected' });
+    return;
+  }
+  const db = getDb();
+  const result = db
+    .prepare('UPDATE chat_messages SET proposal_status = ? WHERE id = ? AND recipe_id = ?')
+    .run(proposal_status, req.params.msgId, req.params.id);
+  if (result.changes === 0) {
+    res.status(404).json({ error: 'Message not found' });
+    return;
+  }
+  res.json({ ok: true });
 });
 
 export default router;

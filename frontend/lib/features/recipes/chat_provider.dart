@@ -45,8 +45,16 @@ class ChatNotifier extends _$ChatNotifier {
       } catch (_) {}
     }
 
+    // If new proposal arrived, mark all previous unresolved proposals as rejected
+    final updated = proposal != null
+        ? current.map((m) =>
+            m.proposal != null && m.proposalStatus == null
+                ? m.copyWith(proposalStatus: 'rejected')
+                : m).toList()
+        : List<ChatMessage>.from(current);
+
     final assistantMsg = ChatMessage(
-      id: 'resp-${DateTime.now().millisecondsSinceEpoch}',
+      id: data['id'] as String,
       recipeId: recipeId,
       role: 'assistant',
       content: data['text'] as String,
@@ -54,12 +62,47 @@ class ChatNotifier extends _$ChatNotifier {
       createdAt: DateTime.now().toIso8601String(),
     );
 
-    state = AsyncData([...current, optimisticUser, assistantMsg]);
+    state = AsyncData([...updated, optimisticUser, assistantMsg]);
   }
 
-  Future<void> applyProposal(Recipe proposal) async {
+  Future<void> applyProposal(String messageId, Recipe proposal) async {
     await ref
         .read(recipeDetailProvider(recipeId).notifier)
         .save(proposal.toJson());
+    final client = ref.read(apiClientProvider);
+    await client.patch(
+      '/api/recipes/$recipeId/chat/$messageId',
+      {'proposal_status': 'accepted'},
+    );
+    final current = state.valueOrNull ?? [];
+    state = AsyncData(
+      current
+          .map((m) => m.id == messageId
+              ? m.copyWith(proposalStatus: 'accepted')
+              : m)
+          .toList(),
+    );
+  }
+
+  Future<void> clearChat() async {
+    final client = ref.read(apiClientProvider);
+    await client.delete('/api/recipes/$recipeId/chat');
+    state = const AsyncData([]);
+  }
+
+  Future<void> rejectProposal(String messageId) async {
+    final client = ref.read(apiClientProvider);
+    await client.patch(
+      '/api/recipes/$recipeId/chat/$messageId',
+      {'proposal_status': 'rejected'},
+    );
+    final current = state.valueOrNull ?? [];
+    state = AsyncData(
+      current
+          .map((m) => m.id == messageId
+              ? m.copyWith(proposalStatus: 'rejected')
+              : m)
+          .toList(),
+    );
   }
 }

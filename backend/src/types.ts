@@ -38,6 +38,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   proposal: Recipe | null;
+  proposal_status: 'accepted' | 'rejected' | null;
   created_at: string;
 }
 
