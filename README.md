@@ -55,19 +55,44 @@ docker compose -f docker-compose.caddy.yml up -d
 
 ### Ollama Models
 
-**Local model** (requires sufficient RAM, ~7 GB for small models):
+**Option A: Local Ollama container (default)**
+
+The `ollama` service in `docker-compose.yml` runs Ollama locally.
+
+Local model (requires ~7 GB RAM):
 ```env
+OLLAMA_HOST=http://ollama:11434
 OLLAMA_MODEL=gemma4:e2b
 ```
 
-**Cloud model** (no local GPU needed, requires Ollama account):
+Cloud model via local container (requires ollama.com account, no GPU/RAM needed):
 ```env
-OLLAMA_MODEL=gemma4:e2b-cloud
+OLLAMA_HOST=http://ollama:11434
+OLLAMA_MODEL=gemma4:31b-cloud
 ```
 
-Pull the model once after starting:
+Sign in once after first start (credentials are stored in the `ollama_data` volume):
+```bash
+docker compose exec ollama ollama signin
+```
+
+Pull a local model once before use:
 ```bash
 docker compose exec ollama ollama pull gemma4:e2b
+```
+
+**Option B: Direct ollama.com API (no local container)**
+
+If you don't want to run the Ollama container at all, point directly to ollama.com:
+
+1. Create an API key at [ollama.com/settings/keys](https://ollama.com/settings/keys)
+2. Remove the `ollama` service and `depends_on` from `docker-compose.yml`
+3. Set in `.env`:
+
+```env
+OLLAMA_HOST=https://ollama.com
+OLLAMA_MODEL=gemma4:31b-cloud
+OLLAMA_API_KEY=your-api-key
 ```
 
 ## Development
@@ -121,8 +146,8 @@ flutter build apk --release
 | Variable | Description | Default |
 |---|---|---|
 | `API_KEY` | Login key for the app | – |
-| `OLLAMA_HOST` | Ollama API URL | `http://ollama:11434` |
+| `OLLAMA_HOST` | Ollama API URL (`http://ollama:11434` for local container, `https://ollama.com` for direct API) | `http://ollama:11434` |
 | `OLLAMA_MODEL` | Model to use | `gemma4:e2b` |
-| `OLLAMA_API_KEY` | Ollama account key (cloud models only) | – |
+| `OLLAMA_API_KEY` | Only needed for Option B (direct ollama.com API) | – |
 | `PORT` | Backend port | `3000` |
 | `DATA_DIR` | SQLite database directory | `./data` |

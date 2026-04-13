@@ -40,9 +40,9 @@ class RecipeStep {
   });
 
   factory RecipeStep.fromJson(Map<String, dynamic> j) => RecipeStep(
-        order: j['order'] as int,
+        order: (j['order'] as num).toInt(),
         description: j['description'] as String,
-        durationMin: j['duration_min'] as int?,
+        durationMin: (j['duration_min'] as num?)?.toInt(),
         tip: j['tip'] as String?,
       );
 
@@ -94,27 +94,31 @@ class Recipe {
   });
 
   factory Recipe.fromJson(Map<String, dynamic> j) => Recipe(
-        id: j['id'] as String,
-        title: j['title'] as String,
-        description: j['description'] as String,
-        portions: j['portions'] as int,
-        prepTime: j['prep_time'] as String,
-        cookTime: j['cook_time'] as String,
-        difficulty: j['difficulty'] as String,
+        id: j['id'] as String? ?? '',
+        title: j['title'] as String? ?? '',
+        description: j['description'] as String? ?? '',
+        portions: (j['portions'] as num?)?.toInt() ?? 0,
+        prepTime: j['prep_time'] as String? ?? '',
+        cookTime: j['cook_time'] as String? ?? '',
+        difficulty: j['difficulty'] as String? ?? 'einfach',
         cuisine: j['cuisine'] as String? ?? '',
         category: j['category'] as String? ?? '',
-        tags: List<String>.from(j['tags'] as List),
-        ingredients: (j['ingredients'] as List)
-            .map((e) => Ingredient.fromJson(e as Map<String, dynamic>))
-            .toList(),
-        steps: (j['steps'] as List)
-            .map((e) => RecipeStep.fromJson(e as Map<String, dynamic>))
-            .toList(),
-        notes: j['notes'] as String,
+        tags: j['tags'] != null ? List<String>.from(j['tags'] as List) : [],
+        ingredients: j['ingredients'] != null
+            ? (j['ingredients'] as List)
+                .map((e) => Ingredient.fromJson(e as Map<String, dynamic>))
+                .toList()
+            : [],
+        steps: j['steps'] != null
+            ? (j['steps'] as List)
+                .map((e) => RecipeStep.fromJson(e as Map<String, dynamic>))
+                .toList()
+            : [],
+        notes: j['notes'] as String? ?? '',
         imageUrl: j['image_url'] as String?,
-        status: j['status'] as String,
-        createdAt: j['created_at'] as String,
-        updatedAt: j['updated_at'] as String,
+        status: j['status'] as String? ?? 'draft',
+        createdAt: j['created_at'] as String? ?? '',
+        updatedAt: j['updated_at'] as String? ?? '',
       );
 
   Map<String, dynamic> toJson() => {

@@ -108,7 +108,9 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
 
   try {
     const raw = await chatWithOllama(ollamaMessages);
+    console.log('=== LLM RAW RESPONSE ===\n', raw, '\n========================');
     const { text, proposal } = parseLlmResponse(raw);
+    console.log('Parsed proposal:', proposal ? 'YES' : 'null');
 
     // Save assistant message
     const assistantMsgId = uuidv4();

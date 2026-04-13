@@ -13,6 +13,9 @@ services:
       ollama:
         condition: service_healthy
 
+  # Ollama – Option A: local container (default)
+  # Not needed if you use Option B (direct ollama.com API via OLLAMA_HOST=https://ollama.com).
+  # In that case, remove the ollama service and the depends_on block in backend above.
   ollama:
     image: ollama/ollama:latest
     restart: unless-stopped
@@ -24,7 +27,8 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
-    # GPU support (optional, uncomment if a GPU is available)
+
+    # NVIDIA GPU support (uncomment if available):
     # deploy:
     #   resources:
     #     reservations:
@@ -32,6 +36,11 @@ services:
     #         - driver: nvidia
     #           count: all
     #           capabilities: [gpu]
+
+    # AMD GPU support (uncomment if available):
+    # devices:
+    #   - /dev/kfd:/dev/kfd
+    #   - /dev/dri:/dev/dri
 
 volumes:
   ollama_data:
