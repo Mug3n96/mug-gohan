@@ -11,7 +11,11 @@ part 'api_client.g.dart';
 // In development, Flutter web runs on a different port than the backend.
 // On mobile (Android), use 10.0.2.2 to reach host localhost from emulator.
 String get _baseUrl {
-  if (kIsWeb) return 'http://localhost:3000';
+  if (kIsWeb) {
+    if (kDebugMode) return 'http://localhost:3000';
+    final uri = Uri.base;
+    return '${uri.scheme}://${uri.host}${uri.hasPort && uri.port != 80 && uri.port != 443 ? ':${uri.port}' : ''}';
+  }
   return 'http://10.0.2.2:3000';
 }
 
@@ -30,9 +34,9 @@ class ApiClient {
   final String? _apiKey;
 
   Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        if (_apiKey != null) 'Authorization': 'Bearer $_apiKey',
-      };
+    'Content-Type': 'application/json',
+    if (_apiKey != null) 'Authorization': 'Bearer $_apiKey',
+  };
 
   Future<dynamic> get(String path) async {
     final res = await http.get(Uri.parse('$_baseUrl$path'), headers: _headers);
@@ -67,7 +71,10 @@ class ApiClient {
   }
 
   Future<void> delete(String path) async {
-    final res = await http.delete(Uri.parse('$_baseUrl$path'), headers: _headers);
+    final res = await http.delete(
+      Uri.parse('$_baseUrl$path'),
+      headers: _headers,
+    );
     _handle(res);
   }
 
@@ -77,7 +84,10 @@ class ApiClient {
       return jsonDecode(res.body);
     }
     final body = res.body.isNotEmpty ? jsonDecode(res.body) : {};
-    throw ApiException(res.statusCode, body['error'] ?? res.reasonPhrase ?? 'Unknown error');
+    throw ApiException(
+      res.statusCode,
+      body['error'] ?? res.reasonPhrase ?? 'Unknown error',
+    );
   }
 }
 
