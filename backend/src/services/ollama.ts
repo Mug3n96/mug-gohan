@@ -69,7 +69,7 @@ RECIPE SCHEMA:
   "difficulty": "einfach" | "mittel" | "schwer",
   "tags": string[],
   "ingredients": [{ "name": string, "amount": number, "unit": "g"|"ml"|"stk"|"EL"|"TL"|"Prise", "group"?: string }],
-  "steps": [{ "order": number, "description": string, "duration_min"?: number, "tip"?: string }],
+  "steps": [{ "order": number, "description": string, "duration_min": number (estimate minutes, required), "tip": string (useful cooking tip, required) }],
   "notes": string,
   "image_url": string | null,
   "status": "draft" | "complete"
