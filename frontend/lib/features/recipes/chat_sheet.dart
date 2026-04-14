@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/app_theme.dart';
 import 'chat_model.dart';
@@ -30,6 +35,11 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
   bool _sending = false;
   int _lastMessageCount = 0;
 
+  // Image/file attachment state
+  Uint8List? _pendingImageBytes;
+  String? _pendingMime;
+  String? _pendingFileName;
+
   @override
   void dispose() {
     _inputCtrl.dispose();
@@ -49,21 +59,85 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
     });
   }
 
+  Future<void> _pickGalleryImage() async {
+    final picker = ImagePicker();
+    final xFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1920,
+      maxHeight: 1920,
+      imageQuality: 85,
+    );
+    if (xFile == null) return;
+    final bytes = await xFile.readAsBytes();
+    setState(() {
+      _pendingImageBytes = bytes;
+      _pendingMime = xFile.mimeType ?? 'image/jpeg';
+      _pendingFileName = xFile.name;
+    });
+  }
+
+  Future<void> _takeCameraPhoto() async {
+    final picker = ImagePicker();
+    final xFile = await picker.pickImage(
+      source: ImageSource.camera,
+      maxWidth: 1920,
+      maxHeight: 1920,
+      imageQuality: 85,
+    );
+    if (xFile == null) return;
+    final bytes = await xFile.readAsBytes();
+    setState(() {
+      _pendingImageBytes = bytes;
+      _pendingMime = xFile.mimeType ?? 'image/jpeg';
+      _pendingFileName = xFile.name;
+    });
+  }
+
+  Future<void> _pickPdf() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+    final file = result.files.first;
+    final bytes = file.bytes;
+    if (bytes == null) return;
+    setState(() {
+      _pendingImageBytes = bytes;
+      _pendingMime = 'application/pdf';
+      _pendingFileName = file.name;
+    });
+  }
+
   Future<void> _send() async {
     final text = _inputCtrl.text.trim();
-    if (text.isEmpty || _sending) return;
-    _inputCtrl.clear();
+    if ((text.isEmpty && _pendingImageBytes == null) || _sending) return;
 
-    if (text.startsWith('/')) {
+    String? imageData;
+    if (_pendingImageBytes != null) {
+      imageData = base64Encode(_pendingImageBytes!);
+    }
+
+    _inputCtrl.clear();
+    final mime = _pendingMime;
+    setState(() {
+      _sending = true;
+      _pendingImageBytes = null;
+      _pendingMime = null;
+      _pendingFileName = null;
+    });
+
+    // Skip /command handling if there's an image
+    if (text.startsWith('/') && imageData == null) {
       await _handleCommand(text);
       return;
     }
 
-    setState(() => _sending = true);
     try {
       await ref
           .read(chatNotifierProvider(widget.recipeId).notifier)
-          .sendMessage(text);
+          .sendMessage(text, imageData: imageData, imageMime: mime);
       _scrollToBottom();
     } catch (e) {
       if (mounted) {
@@ -176,6 +250,17 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
             controller: _inputCtrl,
             sending: _sending,
             onSend: _send,
+            onPickGallery: _pickGalleryImage,
+            onPickCamera: _takeCameraPhoto,
+            onPickPdf: _pickPdf,
+            pendingImageBytes: _pendingImageBytes,
+            pendingMime: _pendingMime,
+            pendingFileName: _pendingFileName,
+            onClearAttachment: () => setState(() {
+              _pendingImageBytes = null;
+              _pendingMime = null;
+              _pendingFileName = null;
+            }),
           ),
         ],
       ),
@@ -232,13 +317,51 @@ class _MessageBubbleState extends ConsumerState<_MessageBubble> {
                 bottomRight: Radius.circular(isUser ? 4 : 16),
               ),
             ),
-            child: Text(
-              msg.content,
-              style: TextStyle(
-                color: isUser ? Colors.white : null,
-                fontSize: 14,
-                height: 1.4,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (msg.hasImage) ...[
+                  if (msg.isPdf)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.picture_as_pdf,
+                            color: isUser ? Colors.white70 : AppTheme.primary,
+                            size: 28),
+                        const SizedBox(width: 6),
+                        Text('PDF',
+                            style: TextStyle(
+                                color: isUser
+                                    ? Colors.white70
+                                    : AppTheme.textSecondary,
+                                fontSize: 12)),
+                      ],
+                    )
+                  else
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.memory(
+                        base64Decode(msg.imageData!),
+                        width: 180,
+                        height: 180,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) =>
+                            const Icon(Icons.broken_image, size: 40),
+                      ),
+                    ),
+                  if (msg.content.isNotEmpty) const SizedBox(height: 8),
+                ],
+                if (msg.content.isNotEmpty)
+                  Text(
+                    msg.content,
+                    style: TextStyle(
+                      color: isUser ? Colors.white : null,
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
+                  ),
+              ],
             ),
           ),
           if (hasProposalCard) ...[
@@ -442,17 +565,36 @@ class _EmptyChat extends StatelessWidget {
 
 // ─── Input bar ─────────────────────────────────────────────────────────────────
 
-class _ChatInput extends StatelessWidget {
+class _ChatInput extends StatefulWidget {
   const _ChatInput({
     required this.controller,
     required this.sending,
     required this.onSend,
+    required this.onPickGallery,
+    required this.onPickCamera,
+    required this.onPickPdf,
+    required this.pendingImageBytes,
+    required this.pendingMime,
+    required this.pendingFileName,
+    required this.onClearAttachment,
   });
 
   final TextEditingController controller;
   final bool sending;
   final VoidCallback onSend;
+  final VoidCallback onPickGallery;
+  final VoidCallback onPickCamera;
+  final VoidCallback onPickPdf;
+  final Uint8List? pendingImageBytes;
+  final String? pendingMime;
+  final String? pendingFileName;
+  final VoidCallback onClearAttachment;
 
+  @override
+  State<_ChatInput> createState() => _ChatInputState();
+}
+
+class _ChatInputState extends State<_ChatInput> {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -462,46 +604,116 @@ class _ChatInput extends StatelessWidget {
         12,
         8 + MediaQuery.of(context).viewInsets.bottom,
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: TextField(
-              controller: controller,
-              minLines: 1,
-              maxLines: 4,
-              textInputAction: TextInputAction.send,
-              onSubmitted: (_) => onSend(),
-              decoration: InputDecoration(
-                hintText: 'Nachricht...',
-                isDense: true,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
+          // Preview area if file pending
+          if (widget.pendingImageBytes != null)
+            Container(
+              margin: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.primary.withAlpha(80)),
+              ),
+              child: Row(
+                children: [
+                  if (widget.pendingMime == 'application/pdf')
+                    const Icon(Icons.picture_as_pdf,
+                        color: AppTheme.primary, size: 36)
+                  else
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.memory(
+                        widget.pendingImageBytes!,
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      widget.pendingFileName ?? '',
+                      style: const TextStyle(fontSize: 12),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 16),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: widget.onClearAttachment,
+                  ),
+                ],
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          sending
-              ? const SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: Padding(
-                    padding: EdgeInsets.all(8),
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                )
-              : IconButton.filled(
-                  onPressed: onSend,
-                  icon: const Icon(Icons.send_rounded, size: 18),
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: Colors.white,
+          // Input row with attachment buttons
+          Row(
+            children: [
+              // Camera button
+              IconButton(
+                icon: const Icon(Icons.camera_alt_outlined, size: 20),
+                onPressed: widget.onPickCamera,
+                visualDensity: VisualDensity.compact,
+                tooltip: 'Foto aufnehmen',
+              ),
+              // Gallery button
+              IconButton(
+                icon: const Icon(Icons.image_outlined, size: 20),
+                onPressed: widget.onPickGallery,
+                visualDensity: VisualDensity.compact,
+                tooltip: 'Bild auswählen',
+              ),
+              // PDF button
+              IconButton(
+                icon: const Icon(Icons.picture_as_pdf, size: 20),
+                onPressed: widget.onPickPdf,
+                visualDensity: VisualDensity.compact,
+                tooltip: 'PDF auswählen',
+              ),
+              // Text input
+              Expanded(
+                child: TextField(
+                  controller: widget.controller,
+                  minLines: 1,
+                  maxLines: 4,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: (_) => widget.onSend(),
+                  decoration: InputDecoration(
+                    hintText: 'Nachricht...',
+                    isDense: true,
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
                   ),
                 ),
+              ),
+              const SizedBox(width: 8),
+              // Send button
+              widget.sending
+                  ? const SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Padding(
+                        padding: EdgeInsets.all(8),
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : IconButton.filled(
+                      onPressed: widget.onSend,
+                      icon: const Icon(Icons.send_rounded, size: 18),
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+            ],
+          ),
         ],
       ),
     );

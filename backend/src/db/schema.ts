@@ -51,6 +51,12 @@ export function runMigrations(): void {
   if (!chatColNames.includes('proposal_status')) {
     db.exec(`ALTER TABLE chat_messages ADD COLUMN proposal_status TEXT CHECK (proposal_status IN ('accepted', 'rejected'))`);
   }
+  if (!chatColNames.includes('image_data')) {
+    db.exec(`ALTER TABLE chat_messages ADD COLUMN image_data TEXT`);
+  }
+  if (!chatColNames.includes('image_mime')) {
+    db.exec(`ALTER TABLE chat_messages ADD COLUMN image_mime TEXT`);
+  }
 
   console.log('Database migrations complete');
 }

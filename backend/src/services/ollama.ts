@@ -7,6 +7,7 @@ const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY;
 export interface OllamaMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
+  images?: string[];  // raw base64, only on user messages
 }
 
 export async function chatWithOllama(messages: OllamaMessage[]): Promise<string> {

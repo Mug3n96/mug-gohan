@@ -78,10 +78,11 @@ router.get('/:id/chat', (req: Request, res: Response) => {
  */
 router.post('/:id/chat', async (req: Request, res: Response) => {
   const db = getDb();
-  const { message } = req.body;
+  const { message, imageData, imageMime } = req.body;
 
-  if (!message?.trim()) {
-    res.status(400).json({ error: 'Message is required' });
+  // Valid if either text or image is provided
+  if (!message?.trim() && !imageData) {
+    res.status(400).json({ error: 'Message or image is required' });
     return;
   }
 
@@ -93,17 +94,22 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
   // Save user message
   const userMsgId = uuidv4();
   const now = new Date().toISOString();
-  db.prepare('INSERT INTO chat_messages (id, recipe_id, role, content, proposal, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-    .run(userMsgId, recipe.id, 'user', message, null, now);
+  const userContent = message?.trim() ?? '';
+  db.prepare('INSERT INTO chat_messages (id, recipe_id, role, content, proposal, image_data, image_mime, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(userMsgId, recipe.id, 'user', userContent, null, imageData ?? null, imageMime ?? null, now);
 
-  // Build message history for Ollama
+  // Build message history for Ollama, including images on user messages
   const history = db
     .prepare('SELECT * FROM chat_messages WHERE recipe_id = ? ORDER BY created_at ASC')
     .all(recipe.id) as ChatMessageRow[];
 
   const ollamaMessages: OllamaMessage[] = [
     { role: 'system', content: buildSystemPrompt(recipe) },
-    ...history.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+    ...history.map(m => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+      ...(m.role === 'user' && m.image_data ? { images: [m.image_data] } : {}),
+    })),
   ];
 
   try {

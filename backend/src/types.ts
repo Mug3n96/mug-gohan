@@ -40,6 +40,8 @@ export interface ChatMessage {
   proposal: Recipe | null;
   proposal_status: 'accepted' | 'rejected' | null;
   created_at: string;
+  image_data: string | null;
+  image_mime: string | null;
 }
 
 export type RecipeRow = Omit<Recipe, 'tags' | 'ingredients' | 'steps'> & {

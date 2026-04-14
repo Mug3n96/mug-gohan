@@ -19,7 +19,7 @@ class ChatNotifier extends _$ChatNotifier {
         .toList();
   }
 
-  Future<void> sendMessage(String message) async {
+  Future<void> sendMessage(String message, {String? imageData, String? imageMime}) async {
     final current = state.valueOrNull ?? [];
 
     // Optimistic: show user message immediately
@@ -29,13 +29,19 @@ class ChatNotifier extends _$ChatNotifier {
       role: 'user',
       content: message,
       createdAt: DateTime.now().toIso8601String(),
+      imageData: imageData,
+      imageMime: imageMime,
     );
     state = AsyncData([...current, optimisticUser]);
 
     final client = ref.read(apiClientProvider);
+    final body = <String, dynamic>{'message': message};
+    if (imageData != null) body['imageData'] = imageData;
+    if (imageMime != null) body['imageMime'] = imageMime;
+
     final data = await client.post(
       '/api/recipes/$recipeId/chat',
-      {'message': message},
+      body,
     ) as Map<String, dynamic>;
 
     Recipe? proposal;
