@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "v*"
+    branches:
+      - development
 
 jobs:
   build-apk:
@@ -29,7 +31,15 @@ jobs:
         working-directory: frontend
         run: flutter build apk --release
 
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mug-gohan-${{ github.ref_name }}.apk
+          path: frontend/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
+
       - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ github.ref_name }}
