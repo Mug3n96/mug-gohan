@@ -8,15 +8,10 @@ import '../../features/auth/auth_provider.dart';
 
 part 'api_client.g.dart';
 
-// In development, Flutter web runs on a different port than the backend.
-// On mobile (Android), use 10.0.2.2 to reach host localhost from emulator.
-String get _baseUrl {
-  if (kIsWeb) {
-    if (kDebugMode) return 'http://localhost:3000';
-    final uri = Uri.base;
-    return '${uri.scheme}://${uri.host}${uri.hasPort && uri.port != 80 && uri.port != 443 ? ':${uri.port}' : ''}';
-  }
-  return 'http://10.0.2.2:3000';
+String _webBaseUrl() {
+  if (kDebugMode) return 'http://localhost:3000';
+  final uri = Uri.base;
+  return '${uri.scheme}://${uri.host}${uri.hasPort && uri.port != 80 && uri.port != 443 ? ':${uri.port}' : ''}';
 }
 
 class ApiException implements Exception {
@@ -29,9 +24,10 @@ class ApiException implements Exception {
 }
 
 class ApiClient {
-  ApiClient(this._apiKey);
+  ApiClient(this._apiKey, this._baseUrl);
 
   final String? _apiKey;
+  final String _baseUrl;
 
   Map<String, String> get _headers => {
     'Content-Type': 'application/json',
@@ -94,5 +90,11 @@ class ApiClient {
 @riverpod
 ApiClient apiClient(Ref ref) {
   final apiKey = ref.watch(authNotifierProvider).valueOrNull;
-  return ApiClient(apiKey);
+  final String baseUrl;
+  if (kIsWeb) {
+    baseUrl = _webBaseUrl();
+  } else {
+    baseUrl = ref.watch(serverUrlNotifierProvider).valueOrNull ?? 'http://10.0.2.2:3000';
+  }
+  return ApiClient(apiKey, baseUrl);
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,29 +15,59 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _controller = TextEditingController();
+  final _urlController = TextEditingController();
+  final _keyController = TextEditingController();
   bool _loading = false;
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    if (!kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final url = await ref.read(serverUrlNotifierProvider.future);
+        if (url != null && mounted) {
+          _urlController.text = url;
+        }
+      });
+    }
+  }
+
+  @override
   void dispose() {
-    _controller.dispose();
+    _urlController.dispose();
+    _keyController.dispose();
     super.dispose();
   }
 
   Future<void> _login() async {
-    final key = _controller.text.trim();
+    final key = _keyController.text.trim();
     if (key.isEmpty) return;
+    if (!kIsWeb && _urlController.text.trim().isEmpty) {
+      setState(() => _error = 'Bitte Server-URL eingeben');
+      return;
+    }
 
     setState(() { _loading = true; _error = null; });
 
     try {
-      final client = ApiClient(key);
+      final serverUrl = kIsWeb
+          ? () {
+              final uri = Uri.base;
+              return '${uri.scheme}://${uri.host}${uri.hasPort && uri.port != 80 && uri.port != 443 ? ':${uri.port}' : ''}';
+            }()
+          : _urlController.text.trim().replaceAll(RegExp(r'/+$'), '');
+      final client = ApiClient(key, serverUrl);
       await client.post('/api/auth/login', {'key': key});
+      if (!kIsWeb) {
+        await ref.read(serverUrlNotifierProvider.notifier).save(serverUrl);
+      }
       await ref.read(authNotifierProvider.notifier).login(key);
       if (mounted) context.go('/recipes');
     } on ApiException catch (e) {
-      setState(() { _error = e.statusCode == 401 ? 'Invalid API key' : e.message; });
+      setState(() { _error = e.statusCode == 401 ? 'Ungültiger API Key' : e.message; });
+    } catch (e) {
+      setState(() { _error = 'Verbindung fehlgeschlagen. URL prüfen.' ; });
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -74,12 +105,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
+                  if (!kIsWeb) ...[
+                    TextField(
+                      controller: _urlController,
+                      keyboardType: TextInputType.url,
+                      autocorrect: false,
+                      decoration: const InputDecoration(
+                        labelText: 'Server URL',
+                        hintText: 'https://meine-domain.de',
+                      ),
+                      onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   TextField(
-                    controller: _controller,
+                    controller: _keyController,
                     obscureText: true,
                     decoration: const InputDecoration(
                       labelText: 'API Key',
-                      hintText: 'Enter your access key',
+                      hintText: 'Zugangscode eingeben',
                     ),
                     onSubmitted: (_) => _login(),
                   ),
