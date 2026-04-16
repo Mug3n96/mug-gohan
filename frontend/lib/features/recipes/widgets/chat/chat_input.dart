@@ -59,7 +59,7 @@ class _ChatInputState extends State<ChatInput> {
               child: Row(
                 children: [
                   if (widget.pendingMime == 'application/pdf')
-                    const Icon(Icons.picture_as_pdf,
+                    Icon(Icons.picture_as_pdf,
                         color: AppTheme.primaryLight, size: 36)
                   else
                     ClipRRect(

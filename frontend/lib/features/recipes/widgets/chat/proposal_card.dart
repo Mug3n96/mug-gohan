@@ -59,7 +59,7 @@ class ChatProposalCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
             child: Row(
               children: [
-                const Icon(Icons.auto_fix_high,
+                Icon(Icons.auto_fix_high,
                     size: 15, color: AppTheme.primaryLight),
                 const SizedBox(width: 6),
                 Text(

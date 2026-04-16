@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/config_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 
-class ListEmptyState extends StatelessWidget {
+class ListEmptyState extends ConsumerWidget {
   const ListEmptyState({super.key, required this.onCreateTap});
 
   final VoidCallback onCreateTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(appConfigProvider).strings;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -18,11 +21,11 @@ class ListEmptyState extends StatelessWidget {
             Icon(Icons.menu_book_outlined,
                 size: 72, color: AppTheme.primary.withAlpha(120)),
             const SizedBox(height: 16),
-            Text('Noch keine Rezepte',
+            Text(strings.listEmptyTitle,
                 style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(
-              'Erstelle dein erstes Rezept\nund lass Remy dir helfen.',
+              strings.listEmptySubtitle,
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
@@ -33,7 +36,7 @@ class ListEmptyState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onCreateTap,
               icon: const Icon(Icons.add),
-              label: const Text('Rezept erstellen'),
+              label: Text(strings.listCreateButton),
             ),
           ],
         ),
@@ -60,7 +63,7 @@ class ListErrorView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: AppTheme.error),
+            Icon(Icons.error_outline, size: 48, color: AppTheme.error),
             const SizedBox(height: 16),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 16),

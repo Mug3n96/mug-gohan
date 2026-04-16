@@ -22,7 +22,7 @@ class IngredientRow extends StatelessWidget {
           Container(
             width: 6,
             height: 6,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
                 shape: BoxShape.circle, color: AppTheme.primary),
           ),
           const SizedBox(width: 12),

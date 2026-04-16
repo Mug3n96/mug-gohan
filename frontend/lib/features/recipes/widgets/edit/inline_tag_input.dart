@@ -56,7 +56,7 @@ class _InlineTagInputState extends State<InlineTagInput> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.add, size: 14, color: AppTheme.primary),
+                  Icon(Icons.add, size: 14, color: AppTheme.primary),
                   const SizedBox(width: 4),
                   IntrinsicWidth(
                     child: TextField(

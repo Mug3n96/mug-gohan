@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../core/providers/config_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/content_constraint.dart';
 import '../models/recipe_model.dart';
 import '../providers/recipe_detail_provider.dart';
+import '../providers/chat_provider.dart';
 import '../widgets/chat/chat_sheet.dart';
 import '../widgets/detail/detail_meta_chip.dart';
 import '../widgets/detail/ingredient_row.dart';
@@ -605,25 +607,28 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
         ],
       );
 
-  Widget _viewEmptyHint(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 48),
-          child: Column(
-            children: [
-              Icon(Icons.chat_bubble_outline,
-                  size: 48, color: AppTheme.primary.withAlpha(120)),
-              const SizedBox(height: 12),
-              Text(
-                'Noch leer — tippe auf ✏️\num mit Remy loszulegen.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+  Widget _viewEmptyHint(BuildContext context) {
+    final strings = ref.watch(appConfigProvider).strings;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 48),
+        child: Column(
+          children: [
+            Icon(Icons.chat_bubble_outline,
+                size: 48, color: AppTheme.primary.withAlpha(120)),
+            const SizedBox(height: 12),
+            Text(
+              strings.recipeEmptyHint,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
-      );
+      ),
+    );
+  }
 
   Widget _editMeta(BuildContext context) {
     return Column(
@@ -862,7 +867,7 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
 
 // ─── Chat side panel ───────────────────────────────────────────────────────────
 
-class _ChatPanel extends StatelessWidget {
+class _ChatPanel extends ConsumerWidget {
   const _ChatPanel({
     required this.open,
     required this.recipeId,
@@ -874,14 +879,20 @@ class _ChatPanel extends StatelessWidget {
   final VoidCallback onClose;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final screen = MediaQuery.of(context).size;
     final isMobile = screen.width < 600;
 
     if (isMobile) {
-      final panelHeight = (screen.height * 0.5).clamp(200.0, 480.0);
+      final hasMessages = ref
+          .watch(chatNotifierProvider(recipeId))
+          .valueOrNull
+          ?.isNotEmpty ?? false;
+      final panelHeight = hasMessages
+          ? (screen.height * 0.5).clamp(200.0, 480.0)
+          : (screen.height * 0.75).clamp(300.0, 680.0);
       return AnimatedPositioned(
-        duration: const Duration(milliseconds: 280),
+        duration: const Duration(milliseconds: 320),
         curve: Curves.easeInOut,
         left: 12,
         right: 12,

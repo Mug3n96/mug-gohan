@@ -8,6 +8,7 @@ import { authMiddleware } from './middleware/auth';
 import recipesRouter from './routes/recipes';
 import chatRouter from './routes/chat';
 import authRouter from './routes/auth';
+import configRouter from './routes/config';
 import { setupSwagger } from './services/swagger';
 
 const app = express();
@@ -22,6 +23,7 @@ runMigrations();
 
 setupSwagger(app);
 
+app.use('/api/config', configRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/recipes', authMiddleware, recipesRouter);
 app.use('/api/recipes', authMiddleware, chatRouter);

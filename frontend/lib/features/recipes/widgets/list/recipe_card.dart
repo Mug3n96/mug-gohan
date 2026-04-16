@@ -28,7 +28,7 @@ class RecipeCard extends ConsumerWidget {
                   color: AppTheme.error.withValues(alpha: 0.10),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.delete_outline,
+                child: Icon(Icons.delete_outline,
                     size: 28, color: AppTheme.error),
               ),
               const SizedBox(height: 16),

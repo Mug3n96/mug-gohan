@@ -75,7 +75,7 @@ class _InlineStepTileState extends State<InlineStepTile> {
           Container(
             width: 32,
             height: 32,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
                 color: AppTheme.primary, shape: BoxShape.circle),
             child: Center(
               child: Text('${widget.index + 1}',

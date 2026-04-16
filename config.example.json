@@ -1,0 +1,17 @@
+{
+  "theme": {
+    "primary": "#2D6A4F",
+    "primaryLight": "#52B788",
+    "surface": "#F8F5F0",
+    "background": "#FFFBF5",
+    "error": "#B5332E"
+  },
+  "strings": {
+    "remyGreeting": "Hey, ich bin Ramy!",
+    "remySubtitle": "Lass uns zusammen Rezepte entwerfen",
+    "listEmptyTitle": "Noch keine Rezepte",
+    "listEmptySubtitle": "Erstelle dein erstes Rezept\nund lass Remy dir helfen.",
+    "listCreateButton": "Rezept erstellen",
+    "recipeEmptyHint": "Noch leer — tippe auf ✏️\num mit Remy loszulegen."
+  }
+}
