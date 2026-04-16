@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../core/api/api_client.dart';
-import 'recipe_model.dart';
+import '../../../core/api/api_client.dart';
+import '../models/recipe_model.dart';
 
 part 'recipe_detail_provider.g.dart';
 

@@ -5,8 +5,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/auth/auth_provider.dart';
 import '../../features/auth/login_screen.dart';
-import '../../features/recipes/recipe_list_screen.dart';
-import '../../features/recipes/recipe_detail_screen.dart';
+import '../../features/recipes/screens/recipe_list_screen.dart';
+import '../../features/recipes/screens/recipe_detail_screen.dart';
 
 part 'router.g.dart';
 

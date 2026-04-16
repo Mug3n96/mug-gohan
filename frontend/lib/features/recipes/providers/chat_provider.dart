@@ -1,9 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../core/api/api_client.dart';
-import 'chat_model.dart';
+import '../../../core/api/api_client.dart';
+import '../models/chat_model.dart';
 import 'recipe_detail_provider.dart';
-import 'recipe_model.dart';
+import '../models/recipe_model.dart';
 
 part 'chat_provider.g.dart';
 
