@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/api/api_client.dart';
+import '../../core/providers/config_provider.dart';
 import '../../core/theme/app_theme.dart';
 import 'auth_provider.dart';
 
@@ -84,7 +85,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'mug-gohan',
+                    ref.watch(appConfigProvider).strings.loginTitle,
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w700,
@@ -94,7 +95,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '無限ごはん',
+                    ref.watch(appConfigProvider).strings.loginSubtitle,
                     style: TextStyle(
                       fontSize: 16,
                       color: AppTheme.textSecondary,

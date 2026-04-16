@@ -1,19 +1,10 @@
 import 'package:flutter/material.dart';
 
 class AppThemeConfig {
-  final Color primary;
-  final Color primaryLight;
-  final Color surface;
-  final Color background;
-  final Color error;
+  final Color seedColor;
+  final Color? accentColor;
 
-  const AppThemeConfig({
-    required this.primary,
-    required this.primaryLight,
-    required this.surface,
-    required this.background,
-    required this.error,
-  });
+  const AppThemeConfig({required this.seedColor, this.accentColor});
 
   static Color _hex(String? hex, Color fallback) {
     if (hex == null) return fallback;
@@ -25,17 +16,19 @@ class AppThemeConfig {
   }
 
   factory AppThemeConfig.fromJson(Map<String, dynamic> json) => AppThemeConfig(
-        primary: _hex(json['primary'] as String?, const Color(0xFF2D6A4F)),
-        primaryLight: _hex(json['primaryLight'] as String?, const Color(0xFF52B788)),
-        surface: _hex(json['surface'] as String?, const Color(0xFFF8F5F0)),
-        background: _hex(json['background'] as String?, const Color(0xFFFFFBF5)),
-        error: _hex(json['error'] as String?, const Color(0xFFB5332E)),
+        seedColor: _hex(json['seedColor'] as String?, const Color(0xFF2D6A4F)),
+        accentColor: json['accentColor'] != null
+            ? _hex(json['accentColor'] as String?, const Color(0xFF52B788))
+            : null,
       );
 
   static AppThemeConfig get defaults => AppThemeConfig.fromJson({});
 }
 
 class AppStringsConfig {
+  final String appTitle;
+  final String loginTitle;
+  final String loginSubtitle;
   final String remyGreeting;
   final String remySubtitle;
   final String listEmptyTitle;
@@ -44,6 +37,9 @@ class AppStringsConfig {
   final String recipeEmptyHint;
 
   const AppStringsConfig({
+    required this.appTitle,
+    required this.loginTitle,
+    required this.loginSubtitle,
     required this.remyGreeting,
     required this.remySubtitle,
     required this.listEmptyTitle,
@@ -53,6 +49,9 @@ class AppStringsConfig {
   });
 
   factory AppStringsConfig.fromJson(Map<String, dynamic> json) => AppStringsConfig(
+        appTitle: json['appTitle'] as String? ?? 'mug-gohan',
+        loginTitle: json['loginTitle'] as String? ?? 'mug-gohan',
+        loginSubtitle: json['loginSubtitle'] as String? ?? '無限ごはん',
         remyGreeting: json['remyGreeting'] as String? ?? 'Hey, ich bin Ramy!',
         remySubtitle: json['remySubtitle'] as String? ?? 'Lass uns zusammen Rezepte entwerfen',
         listEmptyTitle: json['listEmptyTitle'] as String? ?? 'Noch keine Rezepte',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/providers/config_provider.dart';
 import '../../../core/widgets/content_constraint.dart';
 import '../../auth/auth_provider.dart';
 import '../providers/recipes_provider.dart';
@@ -32,7 +33,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
           child: Row(
             children: [
               const SizedBox(width: 16),
-              const Expanded(child: Text('mug-gohan')),
+              Expanded(child: Text(ref.watch(appConfigProvider).strings.appTitle)),
               IconButton(
                 icon: const Icon(Icons.logout),
                 tooltip: 'Logout',

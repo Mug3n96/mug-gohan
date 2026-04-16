@@ -8,13 +8,13 @@ const CONFIG_PATH = path.join(process.cwd(), 'config.json');
 
 const DEFAULTS = {
   theme: {
-    primary: '#2D6A4F',
-    primaryLight: '#52B788',
-    surface: '#F8F5F0',
-    background: '#FFFBF5',
-    error: '#B5332E',
+    seedColor: '#2D6A4F',
+    accentColor: '#52B788',
   },
   strings: {
+    appTitle: 'mug-gohan',
+    loginTitle: 'mug-gohan',
+    loginSubtitle: '無限ごはん',
     remyGreeting: 'Hey, ich bin Ramy!',
     remySubtitle: 'Lass uns zusammen Rezepte entwerfen',
     listEmptyTitle: 'Noch keine Rezepte',
