@@ -200,7 +200,7 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
             child: Row(
               children: [
                 SvgPicture.asset(
-                  'assets/icons/remy.svg',
+                  'assets/icons/remy_icon.svg',
                   height: 28,
                   colorFilter: const ColorFilter.mode(AppTheme.primaryLight, BlendMode.srcIn),
                 ),

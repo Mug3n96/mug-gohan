@@ -39,36 +39,61 @@ class ChatNotifier extends _$ChatNotifier {
     if (imageData != null) body['imageData'] = imageData;
     if (imageMime != null) body['imageMime'] = imageMime;
 
-    final data = await client.post(
-      '/api/recipes/$recipeId/chat',
-      body,
-    ) as Map<String, dynamic>;
+    try {
+      final data = await client.post(
+        '/api/recipes/$recipeId/chat',
+        body,
+      ) as Map<String, dynamic>;
 
-    Recipe? proposal;
-    if (data['proposal'] is Map<String, dynamic>) {
-      try {
-        proposal = Recipe.fromJson(data['proposal'] as Map<String, dynamic>);
-      } catch (_) {}
+      Recipe? proposal;
+      if (data['proposal'] is Map<String, dynamic>) {
+        try {
+          proposal = Recipe.fromJson(data['proposal'] as Map<String, dynamic>);
+        } catch (_) {}
+      }
+
+      // If new proposal arrived, mark all previous unresolved proposals as rejected
+      final updated = proposal != null
+          ? current.map((m) =>
+              m.proposal != null && m.proposalStatus == null
+                  ? m.copyWith(proposalStatus: 'rejected')
+                  : m).toList()
+          : List<ChatMessage>.from(current);
+
+      final assistantMsg = ChatMessage(
+        id: data['id'] as String,
+        recipeId: recipeId,
+        role: 'assistant',
+        content: data['text'] as String,
+        proposal: proposal,
+        createdAt: DateTime.now().toIso8601String(),
+      );
+
+      state = AsyncData([...updated, optimisticUser, assistantMsg]);
+    } on ApiException catch (e) {
+      final errorText = switch (e.statusCode) {
+        502 || 503 => 'Ich bin noch in der Küche, bin gleich da! 🍳 Versuch\'s in einem Moment nochmal.',
+        500 => 'Hoppla, mir ist etwas aus den Pfoten gefallen. Versuch\'s nochmal!',
+        _ => 'Da ist etwas schiefgelaufen (${e.statusCode}). Versuch\'s nochmal!',
+      };
+      final errorMsg = ChatMessage(
+        id: 'error-${DateTime.now().millisecondsSinceEpoch}',
+        recipeId: recipeId,
+        role: 'assistant',
+        content: errorText,
+        createdAt: DateTime.now().toIso8601String(),
+      );
+      state = AsyncData([...current, optimisticUser, errorMsg]);
+    } catch (_) {
+      final errorMsg = ChatMessage(
+        id: 'error-${DateTime.now().millisecondsSinceEpoch}',
+        recipeId: recipeId,
+        role: 'assistant',
+        content: 'Keine Verbindung zum Server. Netz prüfen und nochmal versuchen!',
+        createdAt: DateTime.now().toIso8601String(),
+      );
+      state = AsyncData([...current, optimisticUser, errorMsg]);
     }
-
-    // If new proposal arrived, mark all previous unresolved proposals as rejected
-    final updated = proposal != null
-        ? current.map((m) =>
-            m.proposal != null && m.proposalStatus == null
-                ? m.copyWith(proposalStatus: 'rejected')
-                : m).toList()
-        : List<ChatMessage>.from(current);
-
-    final assistantMsg = ChatMessage(
-      id: data['id'] as String,
-      recipeId: recipeId,
-      role: 'assistant',
-      content: data['text'] as String,
-      proposal: proposal,
-      createdAt: DateTime.now().toIso8601String(),
-    );
-
-    state = AsyncData([...updated, optimisticUser, assistantMsg]);
   }
 
   Future<void> applyProposal(String messageId, Recipe proposal) async {

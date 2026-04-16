@@ -264,7 +264,7 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   SvgPicture.asset(
-                                    'assets/icons/remy.svg',
+                                    'assets/icons/remy_icon.svg',
                                     height: 20,
                                     colorFilter: ColorFilter.mode(
                                       _chatOpen
