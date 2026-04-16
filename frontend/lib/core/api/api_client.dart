@@ -8,7 +8,7 @@ import '../../features/auth/auth_provider.dart';
 
 part 'api_client.g.dart';
 
-String _webBaseUrl() {
+String computeWebBaseUrl() {
   if (kDebugMode) return 'http://localhost:3000';
   final uri = Uri.base;
   return '${uri.scheme}://${uri.host}${uri.hasPort && uri.port != 80 && uri.port != 443 ? ':${uri.port}' : ''}';
@@ -92,7 +92,7 @@ ApiClient apiClient(Ref ref) {
   final apiKey = ref.watch(authNotifierProvider).valueOrNull;
   final String baseUrl;
   if (kIsWeb) {
-    baseUrl = _webBaseUrl();
+    baseUrl = computeWebBaseUrl();
   } else {
     baseUrl = ref.watch(serverUrlNotifierProvider).valueOrNull ?? 'http://10.0.2.2:3000';
   }

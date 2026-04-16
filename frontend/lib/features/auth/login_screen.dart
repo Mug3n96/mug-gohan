@@ -52,10 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final serverUrl = kIsWeb
-          ? () {
-              final uri = Uri.base;
-              return '${uri.scheme}://${uri.host}${uri.hasPort && uri.port != 80 && uri.port != 443 ? ':${uri.port}' : ''}';
-            }()
+          ? computeWebBaseUrl()
           : _urlController.text.trim().replaceAll(RegExp(r'/+$'), '');
       final client = ApiClient(key, serverUrl);
       await client.post('/api/auth/login', {'key': key});

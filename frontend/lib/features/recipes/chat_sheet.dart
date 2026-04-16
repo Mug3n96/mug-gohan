@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -201,7 +201,7 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
             child: Row(
               children: [
                 const Icon(Icons.smart_toy_outlined,
-                    size: 18, color: AppTheme.primary),
+                    size: 18, color: AppTheme.primaryLight),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -220,7 +220,6 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
               ],
             ),
           ),
-          const Divider(height: 1),
           // Message list
           Expanded(
             child: chatAsync.when(
@@ -245,7 +244,6 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
                     ),
             ),
           ),
-          const Divider(height: 1),
           _ChatInput(
             controller: _inputCtrl,
             sending: _sending,
@@ -308,7 +306,7 @@ class _MessageBubbleState extends ConsumerState<_MessageBubble> {
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: isUser
-                  ? AppTheme.primary
+                  ? AppTheme.primaryLight
                   : theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(16),
@@ -327,7 +325,7 @@ class _MessageBubbleState extends ConsumerState<_MessageBubble> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.picture_as_pdf,
-                            color: isUser ? Colors.white70 : AppTheme.primary,
+                            color: isUser ? Colors.white70 : AppTheme.primaryLight,
                             size: 28),
                         const SizedBox(width: 6),
                         Text('PDF',
@@ -433,9 +431,8 @@ class _ProposalCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.primary.withAlpha(10),
+        color: AppTheme.primaryLight.withAlpha(18),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.primary.withAlpha(60)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,12 +442,12 @@ class _ProposalCard extends StatelessWidget {
             child: Row(
               children: [
                 const Icon(Icons.auto_fix_high,
-                    size: 15, color: AppTheme.primary),
+                    size: 15, color: AppTheme.primaryLight),
                 const SizedBox(width: 6),
                 Text(
                   'Vorschlag',
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: AppTheme.primary,
+                    color: AppTheme.primaryLight,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -462,16 +459,18 @@ class _ProposalCard extends StatelessWidget {
             child: _buildSummary(context),
           ),
           const SizedBox(height: 8),
-          const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(8),
             child: Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: TextButton(
                     onPressed: onReject,
-                    style: OutlinedButton.styleFrom(
-                        visualDensity: VisualDensity.compact),
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppTheme.textSecondary,
+                    ),
                     child: const Text('Ablehnen'),
                   ),
                 ),
@@ -480,7 +479,9 @@ class _ProposalCard extends StatelessWidget {
                   child: FilledButton(
                     onPressed: proposal != null ? onAccept : null,
                     style: FilledButton.styleFrom(
-                        visualDensity: VisualDensity.compact),
+                      visualDensity: VisualDensity.compact,
+                      backgroundColor: AppTheme.primaryLight,
+                    ),
                     child: const Text('Übernehmen'),
                   ),
                 ),
@@ -532,7 +533,7 @@ class _EmptyChat extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.smart_toy_outlined,
-              size: 40, color: AppTheme.primary.withAlpha(120)),
+              size: 40, color: AppTheme.primaryLight.withAlpha(160)),
           const SizedBox(height: 12),
           Text('Wie kann ich helfen?',
               style: Theme.of(context).textTheme.titleSmall),
@@ -599,29 +600,29 @@ class _ChatInputState extends State<_ChatInput> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        12,
         8,
-        12,
+        8,
+        8,
         8 + MediaQuery.of(context).viewInsets.bottom,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Preview area if file pending
+          // Attachment preview
           if (widget.pendingImageBytes != null)
             Container(
-              margin: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+              margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                color: AppTheme.primaryLight.withAlpha(18),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.primary.withAlpha(80)),
+                border: Border.all(color: AppTheme.primaryLight.withAlpha(80)),
               ),
               child: Row(
                 children: [
                   if (widget.pendingMime == 'application/pdf')
                     const Icon(Icons.picture_as_pdf,
-                        color: AppTheme.primary, size: 36)
+                        color: AppTheme.primaryLight, size: 36)
                   else
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
@@ -648,70 +649,163 @@ class _ChatInputState extends State<_ChatInput> {
                 ],
               ),
             ),
-          // Input row with attachment buttons
+          // WhatsApp-style input row
           Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // Camera button
-              IconButton(
-                icon: const Icon(Icons.camera_alt_outlined, size: 20),
-                onPressed: widget.onPickCamera,
-                visualDensity: VisualDensity.compact,
-                tooltip: 'Foto aufnehmen',
-              ),
-              // Gallery button
-              IconButton(
-                icon: const Icon(Icons.image_outlined, size: 20),
-                onPressed: widget.onPickGallery,
-                visualDensity: VisualDensity.compact,
-                tooltip: 'Bild auswählen',
-              ),
-              // PDF button
-              IconButton(
-                icon: const Icon(Icons.picture_as_pdf, size: 20),
-                onPressed: widget.onPickPdf,
-                visualDensity: VisualDensity.compact,
-                tooltip: 'PDF auswählen',
-              ),
-              // Text input
+              // Pill group: text field + file menu + camera
               Expanded(
-                child: TextField(
-                  controller: widget.controller,
-                  minLines: 1,
-                  maxLines: 4,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => widget.onSend(),
-                  decoration: InputDecoration(
-                    hintText: 'Nachricht...',
-                    isDense: true,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
-                      borderSide: BorderSide.none,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(22),
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: Container(
+                    constraints: const BoxConstraints(minHeight: 44),
+                    color: AppTheme.primaryLight.withAlpha(22),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Text field
+                        Expanded(
+                          child: TextField(
+                            controller: widget.controller,
+                            minLines: 1,
+                            maxLines: 4,
+                            textInputAction: TextInputAction.newline,
+                            decoration: const InputDecoration(
+                              hintText: 'Nachricht...',
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              filled: false,
+                            ),
+                          ),
+                        ),
+                        // Camera icon – nur auf Mobile (nativ + mobile Web)
+                        if (!kIsWeb ||
+                            defaultTargetPlatform == TargetPlatform.android ||
+                            defaultTargetPlatform == TargetPlatform.iOS)
+                          InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: widget.onPickCamera,
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 12),
+                              child: Icon(Icons.camera_alt_outlined,
+                                  size: 20, color: AppTheme.textSecondary),
+                            ),
+                          ),
+                        // File icon – InkWell + showMenu für runden Hover
+                        Builder(
+                          builder: (ctx) => InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () async {
+                              final box = ctx.findRenderObject()! as RenderBox;
+                              final overlay = Navigator.of(ctx)
+                                  .overlay!
+                                  .context
+                                  .findRenderObject()! as RenderBox;
+                              final pos = RelativeRect.fromRect(
+                                Rect.fromPoints(
+                                  box.localToGlobal(Offset.zero,
+                                      ancestor: overlay),
+                                  box.localToGlobal(
+                                      box.size.bottomRight(Offset.zero),
+                                      ancestor: overlay),
+                                ),
+                                Offset.zero & overlay.size,
+                              );
+                              final result = await showMenu<String>(
+                                context: ctx,
+                                position: pos,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                items: const [
+                                  PopupMenuItem(
+                                    value: 'image',
+                                    child: Row(children: [
+                                      Icon(Icons.image_outlined, size: 18),
+                                      SizedBox(width: 10),
+                                      Text('Bild'),
+                                    ]),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'pdf',
+                                    child: Row(children: [
+                                      Icon(Icons.picture_as_pdf_outlined,
+                                          size: 18),
+                                      SizedBox(width: 10),
+                                      Text('PDF'),
+                                    ]),
+                                  ),
+                                ],
+                              );
+                              if (result == 'image') widget.onPickGallery();
+                              if (result == 'pdf') widget.onPickPdf();
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 12),
+                              child: Icon(Icons.attach_file_rounded,
+                                  size: 20, color: AppTheme.textSecondary),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    filled: true,
+                  ),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              // Send button
-              widget.sending
-                  ? const SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: Padding(
-                        padding: EdgeInsets.all(8),
-                        child: CircularProgressIndicator(strokeWidth: 2),
+              // Mic → Send button
+              if (widget.sending)
+                const SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              else
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: widget.controller,
+                  builder: (context, value, _) {
+                    final hasContent = value.text.trim().isNotEmpty ||
+                        widget.pendingImageBytes != null;
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      transitionBuilder: (child, anim) => ScaleTransition(
+                        scale: anim,
+                        child: child,
                       ),
-                    )
-                  : IconButton.filled(
-                      onPressed: widget.onSend,
-                      icon: const Icon(Icons.send_rounded, size: 18),
-                      style: IconButton.styleFrom(
-                        backgroundColor: AppTheme.primary,
-                        foregroundColor: Colors.white,
+                      child: IconButton.filled(
+                        key: ValueKey(hasContent),
+                        onPressed: hasContent
+                            ? widget.onSend
+                            : () {
+                                // TODO: Sprachnachricht
+                              },
+                        icon: Icon(
+                          hasContent
+                              ? Icons.send_rounded
+                              : Icons.mic_rounded,
+                          size: 20,
+                        ),
+                        style: IconButton.styleFrom(
+                          backgroundColor: AppTheme.primaryLight,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(44, 44),
+                        ),
                       ),
-                    ),
+                    );
+                  },
+                ),
             ],
           ),
         ],

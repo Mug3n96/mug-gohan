@@ -223,32 +223,101 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
                   child: const Icon(Icons.edit_outlined),
                 ),
               ),
-            // Edit mode FABs (behind chat)
+            // Edit mode: pill button group
             if (_editMode)
               Positioned(
-                right: 16,
-                bottom: 16,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    FloatingActionButton(
-                      heroTag: 'fab_chat',
-                      onPressed: () => setState(() => _chatOpen = !_chatOpen),
-                      tooltip: 'KI-Assistent',
-                      backgroundColor: _chatOpen ? AppTheme.primary : null,
-                      foregroundColor: _chatOpen ? Colors.white : null,
-                      child: Icon(_chatOpen
-                          ? Icons.smart_toy
-                          : Icons.smart_toy_outlined),
+                bottom: 24,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(50),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    FloatingActionButton(
-                      heroTag: 'fab_done',
-                      onPressed: _exitEditMode,
-                      tooltip: 'Fertig',
-                      child: const Icon(Icons.check_rounded),
+                    padding: const EdgeInsets.all(6),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // KI Hilfe – ghost/tonal
+                        Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(50),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(50),
+                            onTap: () => setState(() => _chatOpen = !_chatOpen),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: _chatOpen
+                                    ? AppTheme.primaryLight.withValues(alpha: 0.18)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _chatOpen ? Icons.smart_toy : Icons.smart_toy_outlined,
+                                    size: 18,
+                                    color: _chatOpen
+                                        ? AppTheme.primaryLight
+                                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'KI Hilfe',
+                                    style: TextStyle(
+                                      color: _chatOpen
+                                          ? AppTheme.primaryLight
+                                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        // Übernehmen – filled mint
+                        Material(
+                          color: AppTheme.primaryLight,
+                          borderRadius: BorderRadius.circular(50),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(50),
+                            onTap: _exitEditMode,
+                            splashColor: Colors.white24,
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.check_rounded, size: 18, color: Colors.white),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Übernehmen',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             if (_editMode)
