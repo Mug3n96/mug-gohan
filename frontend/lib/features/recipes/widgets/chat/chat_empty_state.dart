@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/theme/app_theme.dart';
 
@@ -22,8 +23,11 @@ class ChatEmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.smart_toy_outlined,
-              size: 40, color: AppTheme.primaryLight.withAlpha(160)),
+          SvgPicture.asset(
+            'assets/icons/remy.svg',
+            height: 216,
+            colorFilter: ColorFilter.mode(AppTheme.primaryLight.withAlpha(160), BlendMode.srcIn),
+          ),
           const SizedBox(height: 12),
           Text('Wie kann ich helfen?',
               style: Theme.of(context).textTheme.titleSmall),

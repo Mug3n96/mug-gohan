@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/content_constraint.dart';
@@ -262,20 +263,19 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    _chatOpen
-                                        ? Icons.smart_toy
-                                        : Icons.smart_toy_outlined,
-                                    size: 18,
-                                    color: _chatOpen
-                                        ? AppTheme.primaryLight
-                                        : Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant,
+                                  SvgPicture.asset(
+                                    'assets/icons/remy.svg',
+                                    height: 20,
+                                    colorFilter: ColorFilter.mode(
+                                      _chatOpen
+                                          ? AppTheme.primaryLight
+                                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                                      BlendMode.srcIn,
+                                    ),
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'KI Hilfe',
+                                    'Remy',
                                     style: TextStyle(
                                       color: _chatOpen
                                           ? AppTheme.primaryLight
@@ -614,7 +614,7 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
                   size: 48, color: AppTheme.primary.withAlpha(120)),
               const SizedBox(height: 12),
               Text(
-                'Noch leer — tippe auf ✏️\num mit der KI loszulegen.',
+                'Noch leer — tippe auf ✏️\num mit Remy loszulegen.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppTheme.textSecondary,
                     ),

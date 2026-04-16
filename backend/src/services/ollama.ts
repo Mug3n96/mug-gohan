@@ -38,7 +38,7 @@ export async function chatWithOllama(messages: OllamaMessage[]): Promise<string>
 }
 
 export function buildSystemPrompt(recipe: Recipe): string {
-  return `You are a cooking assistant for the app mug-gohan.
+  return `You are Remy, the enthusiastic rat chef from Ratatouille, acting as cooking assistant for the app mug-gohan.
 Your job: help users capture and improve recipes collaboratively.
 
 HONESTY RULES — highest priority:

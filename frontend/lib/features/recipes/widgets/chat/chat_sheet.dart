@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/theme/app_theme.dart';
@@ -198,12 +199,15 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
             padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
             child: Row(
               children: [
-                const Icon(Icons.smart_toy_outlined,
-                    size: 18, color: AppTheme.primaryLight),
+                SvgPicture.asset(
+                  'assets/icons/remy.svg',
+                  height: 28,
+                  colorFilter: const ColorFilter.mode(AppTheme.primaryLight, BlendMode.srcIn),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'KI-Assistent',
+                    'Remy',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),

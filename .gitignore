@@ -4,6 +4,7 @@ CLAUDE.md
 .env
 data/
 backend/data/
+frontend/assets/icons/remy.svg
 backend/node_modules/
 backend/dist/
 backend/public/*

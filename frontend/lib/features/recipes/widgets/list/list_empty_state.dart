@@ -22,7 +22,7 @@ class ListEmptyState extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(
-              'Erstelle dein erstes Rezept\nund lass die KI dir helfen.',
+              'Erstelle dein erstes Rezept\nund lass Remy dir helfen.',
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
