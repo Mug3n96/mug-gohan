@@ -4,7 +4,7 @@ import { Router, Request, Response } from 'express';
 
 const router = Router();
 
-const CONFIG_PATH = path.join(process.cwd(), 'data', 'config.json');
+const CONFIG_PATH = path.join(process.cwd(), 'config.json');
 
 const DEFAULTS = {
   theme: {
