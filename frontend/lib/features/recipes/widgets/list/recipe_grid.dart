@@ -30,14 +30,16 @@ class RecipeGrid extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth > 600 ? 2 : 1;
+        final w = constraints.maxWidth;
+        final crossAxisCount = w > 900 ? 3 : w > 600 ? 2 : 1;
+        final aspectRatio = crossAxisCount == 1 ? 1.7 : crossAxisCount == 2 ? 1.1 : 0.9;
         return GridView.builder(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: crossAxisCount == 1 ? 2.0 : 1.7,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: aspectRatio,
           ),
           itemCount: recipes.length,
           itemBuilder: (context, index) =>
@@ -80,7 +82,7 @@ class TagFilterBar extends StatelessWidget {
             selectedColor: AppTheme.primary.withAlpha(30),
             checkmarkColor: AppTheme.primary,
             side: BorderSide(
-              color: active ? AppTheme.primary : Colors.transparent,
+              color: active ? AppTheme.primary : AppTheme.primary.withAlpha(60),
               width: 1,
             ),
           );

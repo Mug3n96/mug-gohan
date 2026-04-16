@@ -35,8 +35,13 @@ class ListEmptyState extends ConsumerWidget {
             const SizedBox(height: 32),
             FilledButton.icon(
               onPressed: onCreateTap,
-              icon: const Icon(Icons.add),
+              icon: const Icon(Icons.add, size: 18),
               label: Text(strings.listCreateButton),
+              style: FilledButton.styleFrom(
+                minimumSize: Size.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                shape: const StadiumBorder(),
+              ),
             ),
           ],
         ),

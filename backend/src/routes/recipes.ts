@@ -153,6 +153,22 @@ router.put('/:id', (req: Request, res: Response) => {
   res.json(updated);
 });
 
+router.put('/:id/image', (req: Request, res: Response) => {
+  const db = getDb();
+  const existing = db.prepare('SELECT * FROM recipes WHERE id = ?').get(req.params.id) as RecipeRow | undefined;
+  if (!existing) { res.status(404).json({ error: 'Recipe not found' }); return; }
+
+  const imageUrl: string | null = req.body.image ?? null;
+  db.prepare('UPDATE recipes SET image_url=@image_url, updated_at=@updated_at WHERE id=@id').run({
+    image_url: imageUrl,
+    updated_at: new Date().toISOString(),
+    id: req.params.id,
+  });
+
+  const updated = db.prepare('SELECT * FROM recipes WHERE id = ?').get(req.params.id) as RecipeRow;
+  res.json(parseRecipe(updated));
+});
+
 /**
  * @openapi
  * /api/recipes/{id}:

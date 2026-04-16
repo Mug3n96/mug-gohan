@@ -1,8 +1,14 @@
 import 'dart:async';
 
+import 'dart:convert';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/providers/config_provider.dart';
 import '../../../core/theme/app_theme.dart';
@@ -44,7 +50,11 @@ class RecipeDetailScreen extends ConsumerWidget {
         appBar: AppBar(),
         body: Center(child: Text('Fehler: $e')),
       ),
-      data: (recipe) => _RecipeView(recipe: recipe, id: id),
+      data: (recipe) => _RecipeView(
+        recipe: recipe,
+        id: id,
+        initialEditMode: !recipe.hasTitle,
+      ),
     );
   }
 }
@@ -52,8 +62,9 @@ class RecipeDetailScreen extends ConsumerWidget {
 // ─── Main stateful view ────────────────────────────────────────────────────────
 
 class _RecipeView extends ConsumerStatefulWidget {
-  const _RecipeView({required this.recipe, required this.id});
+  const _RecipeView({required this.recipe, required this.id, this.initialEditMode = false});
   final Recipe recipe;
+  final bool initialEditMode;
   final String id;
 
   @override
@@ -94,6 +105,11 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
     _cuisineCtrl = TextEditingController();
     _categoryCtrl = TextEditingController();
     _notesCtrl = TextEditingController();
+    if (widget.initialEditMode) {
+      _syncControllers();
+      _editMode = true;
+      _chatOpen = true;
+    }
   }
 
   @override
@@ -148,7 +164,71 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
 
   Future<void> _exitEditMode() async {
     await _saveNow();
-    if (mounted) setState(() => _editMode = false);
+    if (!mounted) return;
+    final r = ref.read(recipeDetailProvider(widget.id)).valueOrNull;
+    final isEmpty = r != null &&
+        !r.hasTitle &&
+        r.ingredients.isEmpty &&
+        r.steps.isEmpty;
+    if (isEmpty) {
+      context.pop();
+    } else {
+      setState(() => _editMode = false);
+    }
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      Uint8List? bytes;
+      String mime = 'image/jpeg';
+
+      if (kIsWeb) {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.image,
+          withData: true,
+        );
+        if (result == null || result.files.isEmpty) return;
+        final f = result.files.first;
+        bytes = f.bytes;
+        if (f.extension != null) mime = 'image/${f.extension!.toLowerCase()}';
+      } else {
+        final source = await showModalBottomSheet<ImageSource>(
+          context: context,
+          builder: (ctx) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_library_outlined),
+                  title: const Text('Galerie'),
+                  onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.camera_alt_outlined),
+                  title: const Text('Kamera'),
+                  onTap: () => Navigator.pop(ctx, ImageSource.camera),
+                ),
+              ],
+            ),
+          ),
+        );
+        if (source == null || !mounted) return;
+        final file = await ImagePicker().pickImage(
+            source: source, imageQuality: 80, maxWidth: 1200);
+        if (file == null) return;
+        bytes = await file.readAsBytes();
+        mime = file.mimeType ?? 'image/jpeg';
+      }
+
+      if (bytes == null || !mounted) return;
+      final dataUrl = 'data:$mime;base64,${base64Encode(bytes)}';
+      await ref.read(recipeDetailProvider(widget.id).notifier).uploadImage(dataUrl);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Bild-Upload fehlgeschlagen: $e')),
+      );
+    }
   }
 
   void _scheduleAutoSave() {
@@ -449,6 +529,8 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
 
   List<Widget> _editSections(BuildContext context) {
     return [
+      _editImageSection(context),
+      const SizedBox(height: 16),
       _editMeta(context),
       const SizedBox(height: 12),
       _editTagsSection(context),
@@ -629,6 +711,67 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
       ),
     );
   }
+
+  Widget _editImageSection(BuildContext context) {
+    final imageUrl = widget.recipe.imageUrl;
+    return GestureDetector(
+      onTap: _pickImage,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: SizedBox(
+          height: 180,
+          width: double.infinity,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (imageUrl != null)
+                Image.network(imageUrl, fit: BoxFit.cover,
+                    errorBuilder: (ctx, err, st) => _imagePlaceholder(context))
+              else
+                _imagePlaceholder(context),
+              Container(
+                color: Colors.black.withValues(alpha: 0.25),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      imageUrl != null
+                          ? Icons.edit_outlined
+                          : Icons.add_photo_alternate_outlined,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      imageUrl != null ? 'Bild ändern' : 'Bild hinzufügen',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _imagePlaceholder(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppTheme.primary.withAlpha(50),
+              AppTheme.primaryLight.withAlpha(30),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Icon(Icons.restaurant, size: 48, color: AppTheme.primary.withAlpha(80)),
+      );
 
   Widget _editMeta(BuildContext context) {
     return Column(

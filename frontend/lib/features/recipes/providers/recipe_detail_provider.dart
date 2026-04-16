@@ -21,4 +21,10 @@ class RecipeDetail extends _$RecipeDetail {
     final data = await client.put('/api/recipes/$id', merged) as Map<String, dynamic>;
     state = AsyncData(Recipe.fromJson(data));
   }
+
+  Future<void> uploadImage(String? dataUrl) async {
+    final client = ref.read(apiClientProvider);
+    final data = await client.put('/api/recipes/$id/image', {'image': dataUrl}) as Map<String, dynamic>;
+    state = AsyncData(Recipe.fromJson(data));
+  }
 }

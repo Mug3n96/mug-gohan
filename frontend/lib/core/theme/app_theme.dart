@@ -8,23 +8,33 @@ import '../models/app_config.dart';
 class AppTheme {
   const AppTheme._();
 
+  static Color _seedColor = const Color(0xFF2D6A4F);
+  static Color? _accentColor;
+
   static ColorScheme _scheme = ColorScheme.fromSeed(
     seedColor: const Color(0xFF2D6A4F),
   );
 
   static void configure(AppThemeConfig config) {
-    var scheme = ColorScheme.fromSeed(seedColor: config.seedColor);
-    if (config.accentColor != null) {
+    _seedColor = config.seedColor;
+    _accentColor = config.accentColor;
+    _scheme = _buildScheme(Brightness.light);
+  }
+
+  static ColorScheme _buildScheme(Brightness brightness) {
+    var scheme = ColorScheme.fromSeed(
+        seedColor: _seedColor, brightness: brightness);
+    if (_accentColor != null) {
       scheme = scheme.copyWith(
-        secondary: config.accentColor,
-        secondaryContainer: config.accentColor!.withAlpha(40),
+        secondary: _accentColor,
+        secondaryContainer: _accentColor!.withAlpha(40),
         onSecondary: Colors.white,
       );
     }
-    _scheme = scheme;
+    return scheme;
   }
 
-  // Colors derived from the generated scheme
+  // Colors derived from the generated light scheme (brand colors for direct use)
   static Color get primary => _scheme.primary;
   static Color get primaryLight => _scheme.secondary;
   static Color get surface => _scheme.surfaceContainerLow;
@@ -41,53 +51,56 @@ class AppTheme {
   static const Color textPrimary = Color(0xFF1B1B1B);
   static const Color textSecondary = Color(0xFF6B6B6B);
 
-  static ThemeData get light => ThemeData(
+  static ThemeData get dark => _buildThemeData(_buildScheme(Brightness.dark));
+  static ThemeData get light => _buildThemeData(_scheme);
+
+  static ThemeData _buildThemeData(ColorScheme scheme) => ThemeData(
         useMaterial3: true,
-        colorScheme: _scheme,
-        scaffoldBackgroundColor: background,
+        colorScheme: scheme,
+        scaffoldBackgroundColor: scheme.surface,
         appBarTheme: AppBarTheme(
-          backgroundColor: background,
+          backgroundColor: scheme.surface,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
           scrolledUnderElevation: 0,
           centerTitle: false,
-          titleTextStyle: const TextStyle(
-            color: textPrimary,
+          titleTextStyle: TextStyle(
+            color: scheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
-          iconTheme: const IconThemeData(color: textPrimary),
+          iconTheme: IconThemeData(color: scheme.onSurface),
         ),
         cardTheme: CardThemeData(
-          color: surface,
+          color: scheme.surfaceContainerLow,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: const BorderRadius.all(Radius.circular(16)),
-            side: BorderSide(color: _scheme.outlineVariant),
+            side: BorderSide(color: scheme.outlineVariant),
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: surface,
+          fillColor: scheme.surfaceContainerLow,
           border: OutlineInputBorder(
             borderRadius: const BorderRadius.all(Radius.circular(12)),
-            borderSide: BorderSide(color: _scheme.outlineVariant),
+            borderSide: BorderSide(color: scheme.outlineVariant),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: const BorderRadius.all(Radius.circular(12)),
-            borderSide: BorderSide(color: _scheme.outlineVariant),
+            borderSide: BorderSide(color: scheme.outlineVariant),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: const BorderRadius.all(Radius.circular(12)),
-            borderSide: BorderSide(color: primary, width: 2),
+            borderSide: BorderSide(color: scheme.primary, width: 2),
           ),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
-            backgroundColor: primary,
-            foregroundColor: onPrimary,
+            backgroundColor: scheme.primary,
+            foregroundColor: scheme.onPrimary,
             minimumSize: const Size(double.infinity, 52),
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -95,7 +108,7 @@ class AppTheme {
           ),
         ),
         bottomSheetTheme: BottomSheetThemeData(
-          backgroundColor: background,
+          backgroundColor: scheme.surface,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),

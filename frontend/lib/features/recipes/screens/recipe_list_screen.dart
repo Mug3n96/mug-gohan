@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/providers/config_provider.dart';
+import '../../../core/providers/theme_mode_provider.dart';
 import '../../../core/widgets/content_constraint.dart';
 import '../../auth/auth_provider.dart';
 import '../providers/recipes_provider.dart';
@@ -34,6 +35,20 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
             children: [
               const SizedBox(width: 16),
               Expanded(child: Text(ref.watch(appConfigProvider).strings.appTitle)),
+              IconButton(
+                icon: Icon(ref.watch(themeModeProvider) == ThemeMode.dark
+                    ? Icons.light_mode
+                    : Icons.dark_mode),
+                tooltip: 'Dark Mode',
+                onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
+                style: IconButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.inverseSurface,
+                  foregroundColor: Theme.of(context).colorScheme.onInverseSurface,
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.inverseSurface,
+                  ),
+                ),
+              ),
               IconButton(
                 icon: const Icon(Icons.logout),
                 tooltip: 'Logout',

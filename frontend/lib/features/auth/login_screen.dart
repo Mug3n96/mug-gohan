@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/providers/config_provider.dart';
+import '../../core/providers/theme_mode_provider.dart';
 import '../../core/theme/app_theme.dart';
 import 'auth_provider.dart';
 
@@ -74,9 +75,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: IconButton(
+                  icon: Icon(ref.watch(themeModeProvider) == ThemeMode.dark
+                      ? Icons.light_mode
+                      : Icons.dark_mode),
+                  tooltip: 'Dark Mode',
+                  onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.inverseSurface,
+                    foregroundColor: Theme.of(context).colorScheme.onInverseSurface,
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.inverseSurface,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
@@ -149,6 +174,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ),
+      ),
+        ],
       ),
     );
   }
