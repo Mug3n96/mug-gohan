@@ -273,6 +273,8 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
     return Scaffold(
       body: ContentConstraint(
         child: Stack(
@@ -302,7 +304,7 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
                   child: const Icon(Icons.edit_outlined),
                 ),
               ),
-            if (_editMode)
+            if (_editMode && !keyboardOpen)
               Positioned(
                 bottom: 24,
                 left: 0,

@@ -16,7 +16,7 @@ const PORT = process.env.PORT ?? 3000;
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
-app.use(express.json({ limit: '20mb' }));
+app.use(express.json({ limit: '50mb' }));
 
 initDb();
 runMigrations();

@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/api/api_client.dart';
 import '../models/recipe_model.dart';
+import 'recipes_provider.dart';
 
 part 'recipe_detail_provider.g.dart';
 
@@ -26,5 +27,6 @@ class RecipeDetail extends _$RecipeDetail {
     final client = ref.read(apiClientProvider);
     final data = await client.put('/api/recipes/$id/image', {'image': dataUrl}) as Map<String, dynamic>;
     state = AsyncData(Recipe.fromJson(data));
+    ref.invalidate(recipeListNotifierProvider);
   }
 }

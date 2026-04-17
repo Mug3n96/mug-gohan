@@ -144,12 +144,12 @@ class RecipeCard extends ConsumerWidget {
               children: [
                 // ── Image area ──────────────────────────────────────────
                 Expanded(
-                  flex: 5,
+                  flex: 2,
                   child: _ImageArea(recipe: recipe),
                 ),
                 // ── Content area ─────────────────────────────────────────
                 Expanded(
-                  flex: 4,
+                  flex: 1,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
                     child: Column(

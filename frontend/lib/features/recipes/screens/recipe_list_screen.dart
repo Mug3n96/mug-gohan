@@ -34,16 +34,22 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
           child: Row(
             children: [
               const SizedBox(width: 16),
-              Expanded(child: Text(ref.watch(appConfigProvider).strings.appTitle)),
+              Expanded(
+                child: Text(ref.watch(appConfigProvider).strings.appTitle),
+              ),
               IconButton(
-                icon: Icon(ref.watch(themeModeProvider) == ThemeMode.dark
-                    ? Icons.light_mode
-                    : Icons.dark_mode),
+                icon: Icon(
+                  ref.watch(themeModeProvider) == ThemeMode.dark
+                      ? Icons.light_mode
+                      : Icons.dark_mode,
+                ),
                 tooltip: 'Dark Mode',
                 onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
                 style: IconButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.inverseSurface,
-                  foregroundColor: Theme.of(context).colorScheme.onInverseSurface,
+                  foregroundColor: Theme.of(
+                    context,
+                  ).colorScheme.onInverseSurface,
                   side: BorderSide(
                     color: Theme.of(context).colorScheme.inverseSurface,
                   ),
@@ -70,7 +76,8 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
         data: (recipes) {
           if (recipes.isEmpty) {
             return ListEmptyState(
-                onCreateTap: () => _createRecipe(context, ref));
+              onCreateTap: () => _createRecipe(context, ref),
+            );
           }
 
           final allTags = <String>{for (final r in recipes) ...r.tags}.toList()
@@ -79,8 +86,8 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
           final filtered = _selectedTags.isEmpty
               ? recipes
               : recipes
-                  .where((r) => _selectedTags.any((t) => r.tags.contains(t)))
-                  .toList();
+                    .where((r) => _selectedTags.any((t) => r.tags.contains(t)))
+                    .toList();
 
           return ContentConstraint(
             child: Stack(
@@ -126,14 +133,15 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
 
   Future<void> _createRecipe(BuildContext context, WidgetRef ref) async {
     try {
-      final recipe =
-          await ref.read(recipeListNotifierProvider.notifier).create();
+      final recipe = await ref
+          .read(recipeListNotifierProvider.notifier)
+          .create();
       if (context.mounted) context.push('/recipes/${recipe.id}');
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }

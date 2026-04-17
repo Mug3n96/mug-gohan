@@ -32,7 +32,7 @@ class RecipeGrid extends StatelessWidget {
       builder: (context, constraints) {
         final w = constraints.maxWidth;
         final crossAxisCount = w > 900 ? 3 : w > 600 ? 2 : 1;
-        final aspectRatio = crossAxisCount == 1 ? 1.7 : crossAxisCount == 2 ? 1.1 : 0.9;
+        final aspectRatio = crossAxisCount == 1 ? 3 / 4 : crossAxisCount == 2 ? 1.1 : 0.9;
         return GridView.builder(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
