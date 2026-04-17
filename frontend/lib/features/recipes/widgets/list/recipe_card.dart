@@ -124,7 +124,6 @@ class RecipeCard extends ConsumerWidget {
       child: Container(
         decoration: BoxDecoration(
           color: scheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
@@ -144,7 +143,7 @@ class RecipeCard extends ConsumerWidget {
               children: [
                 // ── Image area ──────────────────────────────────────────
                 Expanded(
-                  flex: 2,
+                  flex: 3,
                   child: _ImageArea(recipe: recipe),
                 ),
                 // ── Content area ─────────────────────────────────────────

@@ -1,6 +1,6 @@
 import 'dart:async';
-
 import 'dart:convert';
+import 'dart:ui' as ui;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -177,6 +177,32 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
     }
   }
 
+  /// Detects MIME type from the first bytes of the file (magic bytes).
+  String _detectMime(Uint8List bytes) {
+    if (bytes.length >= 4 &&
+        bytes[0] == 0x89 && bytes[1] == 0x50 &&
+        bytes[2] == 0x4E && bytes[3] == 0x47) { return 'image/png'; }
+    if (bytes.length >= 3 &&
+        bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF) { return 'image/jpeg'; }
+    if (bytes.length >= 4 &&
+        bytes[0] == 0x47 && bytes[1] == 0x49 &&
+        bytes[2] == 0x46 && bytes[3] == 0x38) { return 'image/gif'; }
+    if (bytes.length >= 4 &&
+        bytes[0] == 0x52 && bytes[1] == 0x49 &&
+        bytes[2] == 0x46 && bytes[3] == 0x46) { return 'image/webp'; }
+    return 'image/jpeg';
+  }
+
+  /// Resize image to max 1200px width using dart:ui (no extra package needed).
+  Future<Uint8List> _resizeImage(Uint8List input) async {
+    final codec = await ui.instantiateImageCodec(input, targetWidth: 1200);
+    final frame = await codec.getNextFrame();
+    final byteData = await frame.image.toByteData(format: ui.ImageByteFormat.png);
+    frame.image.dispose();
+    codec.dispose();
+    return byteData!.buffer.asUint8List();
+  }
+
   Future<void> _pickImage() async {
     try {
       Uint8List? bytes;
@@ -189,8 +215,16 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
         );
         if (result == null || result.files.isEmpty) return;
         final f = result.files.first;
-        bytes = f.bytes;
-        if (f.extension != null) mime = 'image/${f.extension!.toLowerCase()}';
+        if (f.bytes == null) {
+          throw Exception('Bild konnte nicht geladen werden (Datei zu groß?)');
+        }
+        bytes = f.bytes!;
+        mime = _detectMime(bytes);
+        // Compress large images (>3 MB raw) to avoid huge base64 payloads
+        if (bytes.length > 3 * 1024 * 1024) {
+          bytes = await _resizeImage(bytes);
+          mime = 'image/png';
+        }
       } else {
         final source = await showModalBottomSheet<ImageSource>(
           context: context,
@@ -220,7 +254,7 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
         mime = file.mimeType ?? 'image/jpeg';
       }
 
-      if (bytes == null || !mounted) return;
+      if (!mounted) return;
       final dataUrl = 'data:$mime;base64,${base64Encode(bytes)}';
       await ref.read(recipeDetailProvider(widget.id).notifier).uploadImage(dataUrl);
     } catch (e) {
