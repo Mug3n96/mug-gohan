@@ -79,11 +79,19 @@ class ApiClient {
       if (res.body.isEmpty) return null;
       return jsonDecode(res.body);
     }
-    final body = res.body.isNotEmpty ? jsonDecode(res.body) : {};
-    throw ApiException(
-      res.statusCode,
-      body['error'] ?? res.reasonPhrase ?? 'Unknown error',
-    );
+    // Try to extract the error message from the JSON body.
+    // If the response is not JSON (e.g. an HTML 413 page from a reverse proxy),
+    // fall back to the HTTP reason phrase so we don't crash with a FormatException.
+    String message = res.reasonPhrase ?? 'HTTP ${res.statusCode}';
+    if (res.body.isNotEmpty) {
+      try {
+        final body = jsonDecode(res.body) as Map<String, dynamic>;
+        message = body['error'] ?? message;
+      } catch (_) {
+        // Non-JSON response (e.g. proxy error page) – keep the fallback message.
+      }
+    }
+    throw ApiException(res.statusCode, message);
   }
 }
 
