@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -30,6 +31,17 @@ app.use('/api/recipes', authMiddleware, chatRouter);
 
 // Serve Flutter web build as static files
 const frontendPath = path.join(__dirname, '..', 'public');
+
+// Allow favicon to be overridden by placing a favicon.png next to docker-compose.yml
+const customFavicon = path.join(process.cwd(), 'favicon.png');
+app.get('/favicon.png', (_req, res) => {
+  if (fs.existsSync(customFavicon)) {
+    res.sendFile(customFavicon);
+  } else {
+    res.sendFile(path.join(frontendPath, 'favicon.png'));
+  }
+});
+
 app.use(express.static(frontendPath));
 app.get('*', (_req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));

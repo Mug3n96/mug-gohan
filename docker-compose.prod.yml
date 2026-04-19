@@ -9,6 +9,7 @@ services:
       - NODE_ENV=production
     volumes:
       - ./data:/app/data
+      - ./config.json:/app/config.json:ro
     depends_on:
       ollama:
         condition: service_healthy
