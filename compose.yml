@@ -1,6 +1,6 @@
 services:
   backend:
-    build: ./backend
+    image: mug3n96/mug-gohan:latest
     restart: unless-stopped
     ports:
       - "3000:3000"

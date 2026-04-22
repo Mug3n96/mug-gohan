@@ -60,27 +60,9 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
     });
   }
 
-  Future<void> _pickGalleryImage() async {
-    final picker = ImagePicker();
-    final xFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1920,
-      maxHeight: 1920,
-      imageQuality: 85,
-    );
-    if (xFile == null) return;
-    final bytes = await xFile.readAsBytes();
-    setState(() {
-      _pendingImageBytes = bytes;
-      _pendingMime = xFile.mimeType ?? 'image/jpeg';
-      _pendingFileName = xFile.name;
-    });
-  }
-
-  Future<void> _takeCameraPhoto() async {
-    final picker = ImagePicker();
-    final xFile = await picker.pickImage(
-      source: ImageSource.camera,
+  Future<void> _pickImage(ImageSource source) async {
+    final xFile = await ImagePicker().pickImage(
+      source: source,
       maxWidth: 1920,
       maxHeight: 1920,
       imageQuality: 85,
@@ -249,8 +231,8 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
             controller: _inputCtrl,
             sending: _sending,
             onSend: _send,
-            onPickGallery: _pickGalleryImage,
-            onPickCamera: _takeCameraPhoto,
+            onPickGallery: () => _pickImage(ImageSource.gallery),
+            onPickCamera: () => _pickImage(ImageSource.camera),
             onPickPdf: _pickPdf,
             pendingImageBytes: _pendingImageBytes,
             pendingMime: _pendingMime,

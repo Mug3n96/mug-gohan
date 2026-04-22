@@ -45,19 +45,11 @@ Open [http://localhost:3000](http://localhost:3000) and enter your API key.
 
 `build.sh` builds the Flutter web app, copies it into the backend, and starts all Docker containers.
 
-### With Caddy (automatic HTTPS)
-
-```bash
-cp Caddyfile.example Caddyfile
-# Edit Caddyfile: replace domain placeholder with your domain
-docker compose -f docker-compose.caddy.yml up -d
-```
-
 ### Ollama Models
 
 **Option A: Local Ollama container (default)**
 
-The `ollama` service in `docker-compose.yml` runs Ollama locally.
+The `ollama` service in `compose.yml` runs Ollama locally.
 
 Local model (requires ~7 GB RAM):
 ```env
@@ -86,7 +78,7 @@ docker compose exec ollama ollama pull gemma4:e2b
 If you don't want to run the Ollama container at all, point directly to ollama.com:
 
 1. Create an API key at [ollama.com/settings/keys](https://ollama.com/settings/keys)
-2. Remove the `ollama` service and `depends_on` from `docker-compose.yml`
+2. Remove the `ollama` service and `depends_on` from `compose.yml`
 3. Set in `.env`:
 
 ```env

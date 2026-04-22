@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_theme.dart';
+import '../shared/difficulty_utils.dart';
 
 class DifficultyChip extends StatelessWidget {
   const DifficultyChip({
@@ -12,29 +12,14 @@ class DifficultyChip extends StatelessWidget {
   final String value;
   final ValueChanged<String> onChanged;
 
-  static const _values = ['einfach', 'mittel', 'schwer'];
-
-  Color _color() {
-    switch (value) {
-      case 'einfach':
-        return Colors.green;
-      case 'mittel':
-        return Colors.orange;
-      case 'schwer':
-        return Colors.red;
-      default:
-        return AppTheme.textSecondary;
-    }
-  }
-
   void _cycle() {
-    final i = _values.indexOf(value);
-    onChanged(_values[(i + 1) % _values.length]);
+    final i = difficultyValues.indexOf(value);
+    onChanged(difficultyValues[(i + 1) % difficultyValues.length]);
   }
 
   @override
   Widget build(BuildContext context) {
-    final c = _color();
+    final c = difficultyColor(value);
     return GestureDetector(
       onTap: _cycle,
       child: Container(
