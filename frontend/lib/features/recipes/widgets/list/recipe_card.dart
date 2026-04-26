@@ -43,7 +43,10 @@ class RecipeCard extends ConsumerWidget {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: () => context.push('/recipes/${recipe.id}'),
+            onTap: () async {
+              await context.push('/recipes/${recipe.id}');
+              ref.invalidate(recipeListNotifierProvider);
+            },
             onLongPress: () => _confirmDelete(context, ref),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

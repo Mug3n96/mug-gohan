@@ -9,6 +9,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/content_constraint.dart';
 import '../models/recipe_model.dart';
 import '../providers/recipe_detail_provider.dart';
+import '../providers/recipes_provider.dart';
 import '../widgets/detail/recipe_chat_panel.dart';
 import '../widgets/detail/recipe_view_content.dart';
 import '../widgets/edit/dashed_border_painter.dart';
@@ -219,8 +220,12 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
   Widget build(BuildContext context) {
     final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
-    return Scaffold(
-      body: ContentConstraint(
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) ref.invalidate(recipeListNotifierProvider);
+      },
+      child: Scaffold(
+        body: ContentConstraint(
         child: Stack(
           children: [
             CustomScrollView(
@@ -321,6 +326,7 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
               ),
           ],
         ),
+      ),
       ),
     );
   }

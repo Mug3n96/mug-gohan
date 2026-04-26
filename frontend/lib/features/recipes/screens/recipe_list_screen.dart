@@ -136,7 +136,10 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
       final recipe = await ref
           .read(recipeListNotifierProvider.notifier)
           .create();
-      if (context.mounted) context.push('/recipes/${recipe.id}');
+      if (context.mounted) {
+        await context.push('/recipes/${recipe.id}');
+        ref.invalidate(recipeListNotifierProvider);
+      }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(
