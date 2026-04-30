@@ -210,10 +210,7 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Fehler: $e')),
               data: (messages) => messages.isEmpty
-                  ? ChatEmptyState(onSuggestionTap: (s) {
-                      _inputCtrl.text = s;
-                      _send();
-                    })
+                  ? const ChatEmptyState()
                   : ListView.builder(
                       controller: _listCtrl,
                       physics: const ClampingScrollPhysics(),

@@ -6,17 +6,7 @@ import '../../../../core/providers/config_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class ChatEmptyState extends ConsumerWidget {
-  const ChatEmptyState({super.key, required this.onSuggestionTap});
-
-  final ValueChanged<String> onSuggestionTap;
-
-  static const _suggestions = [
-    'Beschreibe das Rezept kurz',
-    'Welche Zutaten fehlen noch?',
-    'Mach mir einen vollständigen Vorschlag',
-  ];
-
-  static const _commands = ['/clear'];
+  const ChatEmptyState({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,29 +38,10 @@ class ChatEmptyState extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              ..._suggestions.map((s) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: ActionChip(
-                      label: Text(s, style: const TextStyle(fontSize: 12)),
-                      onPressed: () => onSuggestionTap(s),
-                    ),
-                  )),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
-                children: _commands
-                    .map((c) => ActionChip(
-                          avatar: const Icon(Icons.terminal, size: 13),
-                          label: Text(
-                            c,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontFamily: 'monospace',
-                            ),
-                          ),
-                          onPressed: () => onSuggestionTap(c),
-                        ))
-                    .toList(),
+              Text(
+                strings.remyFooter,
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
               ),
             ],
           ),

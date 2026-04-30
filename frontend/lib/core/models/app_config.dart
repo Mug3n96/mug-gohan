@@ -31,6 +31,7 @@ class AppStringsConfig {
   final String loginSubtitle;
   final String remyGreeting;
   final String remySubtitle;
+  final String remyFooter;
   final String listEmptyTitle;
   final String listEmptySubtitle;
   final String listCreateButton;
@@ -42,6 +43,7 @@ class AppStringsConfig {
     required this.loginSubtitle,
     required this.remyGreeting,
     required this.remySubtitle,
+    required this.remyFooter,
     required this.listEmptyTitle,
     required this.listEmptySubtitle,
     required this.listCreateButton,
@@ -54,6 +56,8 @@ class AppStringsConfig {
         loginSubtitle: json['loginSubtitle'] as String? ?? '無限ごはん',
         remyGreeting: json['remyGreeting'] as String? ?? 'Hey, ich bin Ramy!',
         remySubtitle: json['remySubtitle'] as String? ?? 'Lass uns zusammen Rezepte entwerfen',
+        remyFooter: json['remyFooter'] as String? ??
+            'Was für ein Rezept möchtest du entwerfen? Sende mir gerne Bilder, Notizen, Fotos oder eine Sprachnachricht und wir erstellen ein tolles Rezept!',
         listEmptyTitle: json['listEmptyTitle'] as String? ?? 'Noch keine Rezepte',
         listEmptySubtitle: json['listEmptySubtitle'] as String? ??
             'Erstelle dein erstes Rezept\nund lass Remy dir helfen.',
