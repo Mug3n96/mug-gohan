@@ -69,19 +69,42 @@ class AppStringsConfig {
   static AppStringsConfig get defaults => AppStringsConfig.fromJson({});
 }
 
+class AppFeaturesConfig {
+  final bool voiceEnabled;
+
+  const AppFeaturesConfig({required this.voiceEnabled});
+
+  factory AppFeaturesConfig.fromJson(Map<String, dynamic> json) =>
+      AppFeaturesConfig(
+        voiceEnabled: json['voiceEnabled'] as bool? ?? false,
+      );
+
+  static AppFeaturesConfig get defaults => AppFeaturesConfig.fromJson({});
+}
+
 class AppConfig {
   final AppThemeConfig theme;
   final AppStringsConfig strings;
+  final AppFeaturesConfig features;
 
-  const AppConfig({required this.theme, required this.strings});
+  const AppConfig({
+    required this.theme,
+    required this.strings,
+    required this.features,
+  });
 
   factory AppConfig.fromJson(Map<String, dynamic> json) => AppConfig(
         theme: AppThemeConfig.fromJson(
             (json['theme'] as Map<String, dynamic>?) ?? {}),
         strings: AppStringsConfig.fromJson(
             (json['strings'] as Map<String, dynamic>?) ?? {}),
+        features: AppFeaturesConfig.fromJson(
+            (json['features'] as Map<String, dynamic>?) ?? {}),
       );
 
-  static AppConfig get defaults =>
-      AppConfig(theme: AppThemeConfig.defaults, strings: AppStringsConfig.defaults);
+  static AppConfig get defaults => AppConfig(
+        theme: AppThemeConfig.defaults,
+        strings: AppStringsConfig.defaults,
+        features: AppFeaturesConfig.defaults,
+      );
 }

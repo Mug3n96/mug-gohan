@@ -1,5 +1,6 @@
 services:
   backend:
+    build: ./backend
     image: mug3n96/mug-gohan:latest
     restart: unless-stopped
     ports:
@@ -14,9 +15,10 @@ services:
       ollama:
         condition: service_healthy
 
+  # ---------------------------------------------------------------------------
   # Ollama – Option A: local container (default)
-  # Not needed if you use Option B (direct ollama.com API via OLLAMA_HOST=https://ollama.com).
-  # In that case, remove the ollama service and the depends_on block in backend above.
+  # ---------------------------------------------------------------------------
+  # Remove this service and the depends_on block in backend to use Option B instead.
   ollama:
     image: ollama/ollama:latest
     restart: unless-stopped
@@ -29,19 +31,24 @@ services:
       retries: 10
       start_period: 30s
 
-    # NVIDIA GPU support (uncomment if available):
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: all
-    #           capabilities: [gpu]
+  # ---------------------------------------------------------------------------
+  # Ollama – Option B: ollama.com cloud API (no local container)
+  # ---------------------------------------------------------------------------
+  # No Ollama container needed. Set in .env:
+  #   OLLAMA_HOST=https://ollama.com
+  #   OLLAMA_MODEL=gemma4:31b-cloud
+  #   OLLAMA_API_KEY=your-api-key   # from ollama.com/settings/keys
+  # Also remove the ollama service above and the depends_on block in backend.
 
-    # AMD GPU support (uncomment if available):
-    # devices:
-    #   - /dev/kfd:/dev/kfd
-    #   - /dev/dri:/dev/dri
+  # Whisper – optional voice transcription (enables mic button in chat)
+  # Uncomment this service and set WHISPER_URL=http://whisper:9000 in your .env to enable.
+  # Remove WHISPER_URL or leave it empty to disable voice input entirely.
+  whisper:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    restart: unless-stopped
+    environment:
+      - ASR_MODEL=base        # tiny / base / small / medium / large
+      - ASR_ENGINE=openai_whisper
 
 volumes:
   ollama_data:

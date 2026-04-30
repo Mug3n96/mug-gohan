@@ -10,6 +10,7 @@ import recipesRouter from './routes/recipes';
 import chatRouter from './routes/chat';
 import authRouter from './routes/auth';
 import configRouter from './routes/config';
+import transcribeRouter from './routes/transcribe';
 import { setupSwagger } from './services/swagger';
 
 const app = express();
@@ -28,6 +29,7 @@ app.use('/api/config', configRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/recipes', authMiddleware, recipesRouter);
 app.use('/api/recipes', authMiddleware, chatRouter);
+app.use('/api/transcribe', authMiddleware, transcribeRouter);
 
 // Serve Flutter web build as static files
 const frontendPath = path.join(__dirname, '..', 'public');

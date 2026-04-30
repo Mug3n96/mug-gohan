@@ -6,7 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:record/record.dart';
 
+import '../../../../core/api/api_client.dart';
+import '../../../../core/providers/config_provider.dart';
+import '../../../../core/utils/platform_file.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../providers/chat_provider.dart';
 import 'chat_empty_state.dart';
@@ -41,10 +46,14 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
   String? _pendingMime;
   String? _pendingFileName;
 
+  final _recorder = AudioRecorder();
+  bool _isRecording = false;
+
   @override
   void dispose() {
     _inputCtrl.dispose();
     _listCtrl.dispose();
+    _recorder.dispose();
     super.dispose();
   }
 
@@ -91,6 +100,65 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
       _pendingMime = 'application/pdf';
       _pendingFileName = file.name;
     });
+  }
+
+  Future<void> _toggleRecording() async {
+    if (_isRecording) {
+      final path = await _recorder.stop();
+      setState(() => _isRecording = false);
+      if (path == null || path.isEmpty) return;
+      try {
+        final Uint8List bytes;
+        if (kIsWeb) {
+          final res = await http.get(Uri.parse(path));
+          bytes = res.bodyBytes;
+        } else {
+          bytes = await readBytesFromPath(path);
+        }
+        await _transcribe(bytes);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Audio lesen fehlgeschlagen: $e')),
+          );
+        }
+      }
+    } else {
+      final hasPermission = await _recorder.hasPermission();
+      if (!hasPermission) return;
+      await _recorder.start(
+        const RecordConfig(
+          encoder: AudioEncoder.opus,
+          sampleRate: 16000,
+          numChannels: 1,
+        ),
+        path: tempAudioPath(),
+      );
+      setState(() => _isRecording = true);
+    }
+  }
+
+  Future<void> _transcribe(Uint8List bytes) async {
+    setState(() => _sending = true);
+    try {
+      final mimeType = kIsWeb ? 'audio/webm' : 'audio/ogg';
+      final transcript =
+          await ref.read(apiClientProvider).transcribeAudio(bytes, mimeType);
+      if (transcript.isNotEmpty && mounted) {
+        await ref
+            .read(chatNotifierProvider(widget.recipeId).notifier)
+            .sendMessage('🎤 $transcript');
+        _scrollToBottom();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Transkription fehlgeschlagen: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
   }
 
   Future<void> _send() async {
@@ -239,6 +307,10 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
               _pendingMime = null;
               _pendingFileName = null;
             }),
+            voiceEnabled:
+                ref.watch(appConfigProvider).features.voiceEnabled,
+            isRecording: _isRecording,
+            onMicTap: _toggleRecording,
           ),
         ],
       ),

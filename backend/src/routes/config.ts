@@ -36,6 +36,8 @@ const DEFAULTS = {
  *         description: App config
  */
 router.get('/', (_req: Request, res: Response) => {
+  const features = { voiceEnabled: !!process.env.WHISPER_URL };
+
   try {
     if (fs.existsSync(CONFIG_PATH)) {
       const raw = fs.readFileSync(CONFIG_PATH, 'utf-8');
@@ -43,13 +45,14 @@ router.get('/', (_req: Request, res: Response) => {
       res.json({
         theme: { ...DEFAULTS.theme, ...(user.theme ?? {}) },
         strings: { ...DEFAULTS.strings, ...(user.strings ?? {}) },
+        features,
       });
       return;
     }
   } catch {
     // fall through to defaults
   }
-  res.json(DEFAULTS);
+  res.json({ ...DEFAULTS, features });
 });
 
 export default router;

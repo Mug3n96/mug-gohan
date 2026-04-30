@@ -16,6 +16,9 @@ class ChatInput extends StatefulWidget {
     required this.pendingMime,
     required this.pendingFileName,
     required this.onClearAttachment,
+    required this.voiceEnabled,
+    required this.isRecording,
+    required this.onMicTap,
   });
 
   final TextEditingController controller;
@@ -28,6 +31,9 @@ class ChatInput extends StatefulWidget {
   final String? pendingMime;
   final String? pendingFileName;
   final VoidCallback onClearAttachment;
+  final bool voiceEnabled;
+  final bool isRecording;
+  final VoidCallback onMicTap;
 
   @override
   State<ChatInput> createState() => _ChatInputState();
@@ -200,49 +206,76 @@ class _ChatInputState extends State<ChatInput> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              // Mic → Send button
-              if (widget.sending)
-                const SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                )
-              else
-                ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: widget.controller,
-                  builder: (context, value, _) {
-                    final hasContent = value.text.trim().isNotEmpty ||
-                        widget.pendingImageBytes != null;
-                    return AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      transitionBuilder: (child, anim) =>
-                          ScaleTransition(scale: anim, child: child),
-                      child: IconButton.filled(
-                        key: ValueKey(hasContent),
-                        onPressed: hasContent
-                            ? widget.onSend
-                            : () {
-                                // TODO: Sprachnachricht
-                              },
-                        icon: Icon(
-                          hasContent
-                              ? Icons.send_rounded
-                              : Icons.mic_rounded,
-                          size: 20,
-                        ),
-                        style: IconButton.styleFrom(
-                          backgroundColor: AppTheme.primaryLight,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(44, 44),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+              // Mic → Send button (hidden when no voice + no content)
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: widget.controller,
+                builder: (context, value, _) {
+                  final hasContent = value.text.trim().isNotEmpty ||
+                      widget.pendingImageBytes != null;
+                  final showButton =
+                      widget.sending || hasContent || widget.voiceEnabled;
+                  return AnimatedSize(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    child: showButton
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(width: 8),
+                              if (widget.sending)
+                                const SizedBox(
+                                  width: 44,
+                                  height: 44,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(10),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  ),
+                                )
+                              else
+                                AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 200),
+                                  transitionBuilder: (child, anim) =>
+                                      ScaleTransition(
+                                          scale: anim, child: child),
+                                  child: hasContent
+                                      ? IconButton.filled(
+                                          key: const ValueKey('send'),
+                                          onPressed: widget.onSend,
+                                          icon: const Icon(
+                                              Icons.send_rounded,
+                                              size: 20),
+                                          style: IconButton.styleFrom(
+                                            backgroundColor:
+                                                AppTheme.primaryLight,
+                                            foregroundColor: Colors.white,
+                                            minimumSize: const Size(44, 44),
+                                          ),
+                                        )
+                                      : IconButton.filled(
+                                          key: ValueKey(widget.isRecording),
+                                          onPressed: widget.onMicTap,
+                                          icon: Icon(
+                                            widget.isRecording
+                                                ? Icons.stop_rounded
+                                                : Icons.mic_rounded,
+                                            size: 20,
+                                          ),
+                                          style: IconButton.styleFrom(
+                                            backgroundColor: widget.isRecording
+                                                ? Colors.red
+                                                : AppTheme.primaryLight,
+                                            foregroundColor: Colors.white,
+                                            minimumSize: const Size(44, 44),
+                                          ),
+                                        ),
+                                ),
+                            ],
+                          )
+                        : const SizedBox.shrink(),
+                  );
+                },
+              ),
             ],
           ),
         ],

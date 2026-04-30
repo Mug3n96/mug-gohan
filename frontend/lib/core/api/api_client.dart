@@ -66,6 +66,21 @@ class ApiClient {
     return _handle(res);
   }
 
+  Future<String> transcribeAudio(Uint8List bytes, String mimeType) async {
+    final uri = Uri.parse('$_baseUrl/api/transcribe');
+    final request = http.MultipartRequest('POST', uri);
+    if (_apiKey != null) request.headers['Authorization'] = 'Bearer $_apiKey';
+    request.files.add(http.MultipartFile.fromBytes(
+      'audio',
+      bytes,
+      filename: 'recording.${mimeType.split('/').last}',
+    ));
+    final streamed = await request.send();
+    final res = await http.Response.fromStream(streamed);
+    final body = _handle(res) as Map<String, dynamic>;
+    return body['transcript'] as String? ?? '';
+  }
+
   Future<void> delete(String path) async {
     final res = await http.delete(
       Uri.parse('$_baseUrl$path'),
