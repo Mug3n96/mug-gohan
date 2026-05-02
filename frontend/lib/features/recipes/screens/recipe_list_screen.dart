@@ -29,35 +29,28 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         scrolledUnderElevation: 0,
-        title: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1300),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(ref.watch(appConfigProvider).strings.appTitle),
-                ),
-                IconButton(
-                  icon: Icon(
-                    ref.watch(themeModeProvider) == ThemeMode.dark
-                        ? Icons.light_mode_outlined
-                        : Icons.dark_mode_outlined,
-                  ),
-                  tooltip: 'Dark Mode',
-                  onPressed: () =>
-                      ref.read(themeModeProvider.notifier).toggle(),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.logout_outlined),
-                  tooltip: 'Logout',
-                  onPressed: () async {
-                    await ref.read(authNotifierProvider.notifier).logout();
-                  },
-                ),
-              ],
+        toolbarHeight: 52,
+        titleSpacing: 16,
+        title: Text(ref.watch(appConfigProvider).strings.appTitle),
+        actions: [
+          IconButton(
+            icon: Icon(
+              ref.watch(themeModeProvider) == ThemeMode.dark
+                  ? Icons.light_mode_outlined
+                  : Icons.dark_mode_outlined,
             ),
+            tooltip: 'Dark Mode',
+            onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
           ),
-        ),
+          IconButton(
+            icon: const Icon(Icons.logout_outlined),
+            tooltip: 'Logout',
+            onPressed: () async {
+              await ref.read(authNotifierProvider.notifier).logout();
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: recipesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -84,51 +77,51 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
           return ContentConstraint(
             child: Stack(
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                      child: Text(
-                        'Deine Rezepte',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
+                CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                        child: Text(
+                          'Deine Rezepte',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                      child: Text(
-                        '${filtered.length} ${filtered.length == 1 ? "Rezept" : "Rezepte"}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withAlpha(140)),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                        child: Text(
+                          '${filtered.length} ${filtered.length == 1 ? "Rezept" : "Rezepte"}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withAlpha(140)),
+                        ),
                       ),
                     ),
                     if (allTags.isNotEmpty)
-                      TagFilterBar(
-                        tags: allTags,
-                        selected: _selectedTags,
-                        onToggle: (tag) => setState(() {
-                          if (_selectedTags.contains(tag)) {
-                            _selectedTags.remove(tag);
-                          } else {
-                            _selectedTags.add(tag);
-                          }
-                        }),
+                      SliverToBoxAdapter(
+                        child: TagFilterBar(
+                          tags: allTags,
+                          selected: _selectedTags,
+                          onToggle: (tag) => setState(() {
+                            if (_selectedTags.contains(tag)) {
+                              _selectedTags.remove(tag);
+                            } else {
+                              _selectedTags.add(tag);
+                            }
+                          }),
+                        ),
                       ),
-                    Expanded(
-                      child: RecipeGrid(
-                        recipes: filtered,
-                        onCreateTap: () => _createRecipe(context, ref),
-                      ),
-                    ),
+                    RecipeGridSliver(recipes: filtered),
                   ],
                 ),
                 if (showFab)

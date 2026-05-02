@@ -4,33 +4,31 @@ import '../../../../core/theme/app_theme.dart';
 import '../../models/recipe_model.dart';
 import 'recipe_card.dart';
 
-class RecipeGrid extends StatelessWidget {
-  const RecipeGrid({
-    super.key,
-    required this.recipes,
-    required this.onCreateTap,
-  });
+class RecipeGridSliver extends StatelessWidget {
+  const RecipeGridSliver({super.key, required this.recipes});
 
   final List<Recipe> recipes;
-  final VoidCallback onCreateTap;
 
   @override
   Widget build(BuildContext context) {
     if (recipes.isEmpty) {
-      return Center(
-        child: Text(
-          'Keine Rezepte für diese Tags',
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(color: AppTheme.textSecondary),
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: Center(
+          child: Text(
+            'Keine Rezepte für diese Tags',
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: AppTheme.textSecondary),
+          ),
         ),
       );
     }
 
-    return LayoutBuilder(
+    return SliverLayoutBuilder(
       builder: (context, constraints) {
-        final w = constraints.maxWidth;
+        final w = constraints.crossAxisExtent;
         final crossAxisCount = w > 1100
             ? 4
             : w > 800
@@ -43,17 +41,20 @@ class RecipeGrid extends StatelessWidget {
             : crossAxisCount == 2
                 ? 0.95
                 : 0.86;
-        return GridView.builder(
+        return SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: aspectRatio,
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: aspectRatio,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => RecipeCard(recipe: recipes[index]),
+              childCount: recipes.length,
+            ),
           ),
-          itemCount: recipes.length,
-          itemBuilder: (context, index) =>
-              RecipeCard(recipe: recipes[index]),
         );
       },
     );
