@@ -448,9 +448,13 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
                   ),
                 )
               else if (_saveStatus == _SaveStatus.saved)
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: Icon(Icons.check, color: Colors.green, size: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Icon(
+                    Icons.check,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 20,
+                  ),
                 ),
             ]
           : null,
