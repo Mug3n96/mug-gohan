@@ -31,10 +31,20 @@ class RecipeGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
-        final crossAxisCount = w > 900 ? 3 : w > 600 ? 2 : 1;
-        final aspectRatio = crossAxisCount == 1 ? 1.0 : crossAxisCount == 2 ? 1.1 : 0.9;
+        final crossAxisCount = w > 1100
+            ? 4
+            : w > 800
+                ? 3
+                : w > 520
+                    ? 2
+                    : 1;
+        final aspectRatio = crossAxisCount == 1
+            ? 1.05
+            : crossAxisCount == 2
+                ? 0.95
+                : 0.82;
         return GridView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 16,
@@ -65,12 +75,12 @@ class TagFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 48,
+      height: 52,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
         itemCount: tags.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 6),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
           final tag = tags[i];
           final active = selected.contains(tag);
@@ -79,12 +89,20 @@ class TagFilterBar extends StatelessWidget {
             selected: active,
             onSelected: (_) => onToggle(tag),
             visualDensity: VisualDensity.compact,
-            selectedColor: AppTheme.primary.withAlpha(30),
-            checkmarkColor: AppTheme.primary,
+            showCheckmark: false,
+            backgroundColor: Colors.transparent,
+            selectedColor: AppTheme.primary.withAlpha(35),
+            labelStyle: TextStyle(
+              fontSize: 12,
+              color: active ? AppTheme.primary : null,
+              fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+            ),
             side: BorderSide(
-              color: active ? AppTheme.primary : AppTheme.primary.withAlpha(60),
+              color:
+                  active ? AppTheme.primary : AppTheme.primary.withAlpha(50),
               width: 1,
             ),
+            shape: const StadiumBorder(),
           );
         },
       ),

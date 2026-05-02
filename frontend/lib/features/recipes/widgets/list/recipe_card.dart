@@ -26,89 +26,69 @@ class RecipeCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    return GestureDetector(
-      onLongPress: () => _confirmDelete(context, ref),
-      child: Container(
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerLow,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () async {
-              await context.push('/recipes/${recipe.id}');
-              ref.invalidate(recipeListNotifierProvider);
-            },
-            onLongPress: () => _confirmDelete(context, ref),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Image area ──────────────────────────────────────────
-                Expanded(
-                  flex: 3,
-                  child: _ImageArea(recipe: recipe),
-                ),
-                // ── Content area ─────────────────────────────────────────
-                Expanded(
-                  flex: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                recipe.hasTitle ? recipe.title : 'Neues Rezept',
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: recipe.hasTitle
-                                      ? scheme.onSurface
-                                      : scheme.onSurface.withAlpha(80),
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline, size: 16),
-                              color: scheme.onSurface.withAlpha(60),
-                              visualDensity: VisualDensity.compact,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              tooltip: 'Löschen',
-                              onPressed: () => _confirmDelete(context, ref),
-                            ),
-                          ],
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () async {
+            await context.push('/recipes/${recipe.id}');
+            ref.invalidate(recipeListNotifierProvider);
+          },
+          onLongPress: () => _confirmDelete(context, ref),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AspectRatio(
+                aspectRatio: 16 / 10,
+                child: _ImageArea(recipe: recipe),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        recipe.hasTitle ? recipe.title : 'Neues Rezept',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: recipe.hasTitle
+                              ? scheme.onSurface
+                              : scheme.onSurface.withAlpha(80),
                         ),
-                        if (recipe.description.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            recipe.description,
-                            style: theme.textTheme.bodySmall
-                                ?.copyWith(color: scheme.onSurface.withAlpha(120)),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                        const Spacer(),
-                        _MetaRow(recipe: recipe),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (recipe.description.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          recipe.description,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurface.withAlpha(140)),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
-                    ),
+                      const Spacer(),
+                      const SizedBox(height: 8),
+                      _MetaRow(recipe: recipe),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -135,33 +115,48 @@ class _ImageArea extends StatelessWidget {
     if (recipe.tags.isEmpty) return base;
 
     return Stack(
+      fit: StackFit.expand,
       children: [
         base,
         Positioned(
-          bottom: 8,
-          left: 8,
-          right: 8,
-          child: Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: [
-              for (final tag in recipe.tags)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(220),
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Text(
-                    tag,
-                    style: TextStyle(
-                      color: AppTheme.primary,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(10, 24, 10, 8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.55),
+                ],
+              ),
+            ),
+            child: Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: [
+                for (final tag in recipe.tags)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Text(
+                      tag,
+                      style: TextStyle(
+                        color: AppTheme.primary,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ],

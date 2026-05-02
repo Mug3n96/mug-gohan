@@ -91,9 +91,8 @@ class RecipeEditContent extends StatelessWidget {
       onTap: onPickImage,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: SizedBox(
-          height: 180,
-          width: double.infinity,
+        child: AspectRatio(
+          aspectRatio: 16 / 9,
           child: Stack(
             fit: StackFit.expand,
             children: [

@@ -6,7 +6,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/content_constraint.dart';
 import '../models/recipe_model.dart';
 import '../providers/recipe_detail_provider.dart';
 import '../providers/recipes_provider.dart';
@@ -15,6 +14,10 @@ import '../widgets/detail/recipe_view_content.dart';
 import '../widgets/edit/dashed_border_painter.dart';
 import '../widgets/edit/image_pick_helper.dart';
 import '../widgets/edit/recipe_edit_content.dart';
+
+const double _kContentMaxWidth = 760;
+const double _kSidebarWidth = 380;
+const double _kSidebarBreakpoint = 900;
 
 // ─── Save status ───────────────────────────────────────────────────────────────
 
@@ -225,8 +228,54 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
         if (didPop) ref.invalidate(recipeListNotifierProvider);
       },
       child: Scaffold(
-        body: ContentConstraint(
-        child: Stack(
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= _kSidebarBreakpoint;
+            final showInlineSidebar = wide && _editMode && _chatOpen;
+            final sidebarReserve = showInlineSidebar ? _kSidebarWidth : 0.0;
+            final contentArea = _buildContentColumn(
+              context,
+              keyboardOpen: keyboardOpen,
+              wide: wide,
+              chatAsOverlay: _editMode && !wide,
+            );
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: _kContentMaxWidth + sidebarReserve,
+                      ),
+                      child: contentArea,
+                    ),
+                  ),
+                ),
+                if (showInlineSidebar)
+                  SizedBox(
+                    width: _kSidebarWidth,
+                    child: EmbeddedRecipeChatPanel(
+                      recipeId: widget.id,
+                      onClose: () => setState(() => _chatOpen = false),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContentColumn(
+    BuildContext context, {
+    required bool keyboardOpen,
+    required bool wide,
+    required bool chatAsOverlay,
+  }) {
+    return Stack(
           children: [
             CustomScrollView(
               slivers: [
@@ -318,17 +367,14 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
                 ),
               ),
             if (_editMode && !keyboardOpen) _buildBottomBar(context),
-            if (_editMode)
+            if (chatAsOverlay)
               RecipeChatPanel(
                 open: _chatOpen,
                 recipeId: widget.id,
                 onClose: () => setState(() => _chatOpen = false),
               ),
           ],
-        ),
-      ),
-      ),
-    );
+        );
   }
 
   Widget _buildAppBar(BuildContext context) {

@@ -36,31 +36,65 @@ class _RecipeViewContentState extends ConsumerState<RecipeViewContent> {
   @override
   Widget build(BuildContext context) {
     final recipe = widget.recipe;
-    return SliverList(
-      delegate: SliverChildListDelegate([
-        _buildMeta(context, recipe),
-        if (recipe.tags.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          _buildTags(recipe),
-        ],
-        const SizedBox(height: 24),
-        if (recipe.ingredients.isNotEmpty) ...[
-          _buildIngredients(context, recipe),
-          const SizedBox(height: 24),
-        ],
-        if (recipe.steps.isNotEmpty) ...[
-          _buildSteps(context, recipe),
-          const SizedBox(height: 24),
-        ],
-        if (recipe.notes.isNotEmpty) ...[
-          _buildNotes(context, recipe),
-          const SizedBox(height: 24),
-        ],
-        if (recipe.ingredients.isEmpty &&
-            recipe.steps.isEmpty &&
-            recipe.description.isEmpty)
-          _buildEmptyHint(context),
-      ]),
+    return SliverToBoxAdapter(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final twoCol = constraints.maxWidth >= 680 &&
+              recipe.ingredients.isNotEmpty &&
+              recipe.steps.isNotEmpty;
+
+          final children = <Widget>[
+            _buildMeta(context, recipe),
+            if (recipe.tags.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _buildTags(recipe),
+            ],
+            const SizedBox(height: 24),
+          ];
+
+          if (twoCol) {
+            children.add(IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 280,
+                    child: _buildIngredients(context, recipe),
+                  ),
+                  const SizedBox(width: 32),
+                  Expanded(child: _buildSteps(context, recipe)),
+                ],
+              ),
+            ));
+            children.add(const SizedBox(height: 24));
+          } else {
+            if (recipe.ingredients.isNotEmpty) {
+              children.add(_buildIngredients(context, recipe));
+              children.add(const SizedBox(height: 24));
+            }
+            if (recipe.steps.isNotEmpty) {
+              children.add(_buildSteps(context, recipe));
+              children.add(const SizedBox(height: 24));
+            }
+          }
+
+          if (recipe.notes.isNotEmpty) {
+            children.add(_buildNotes(context, recipe));
+            children.add(const SizedBox(height: 24));
+          }
+
+          if (recipe.ingredients.isEmpty &&
+              recipe.steps.isEmpty &&
+              recipe.description.isEmpty) {
+            children.add(_buildEmptyHint(context));
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: children,
+          );
+        },
+      ),
     );
   }
 

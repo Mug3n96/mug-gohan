@@ -27,43 +27,35 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0,
         automaticallyImplyLeading: false,
         scrolledUnderElevation: 0,
-        title: ContentConstraint(
-          child: Row(
-            children: [
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(ref.watch(appConfigProvider).strings.appTitle),
-              ),
-              IconButton(
-                icon: Icon(
-                  ref.watch(themeModeProvider) == ThemeMode.dark
-                      ? Icons.light_mode
-                      : Icons.dark_mode,
+        title: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1300),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(ref.watch(appConfigProvider).strings.appTitle),
                 ),
-                tooltip: 'Dark Mode',
-                onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
-                style: IconButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.inverseSurface,
-                  foregroundColor: Theme.of(
-                    context,
-                  ).colorScheme.onInverseSurface,
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.inverseSurface,
+                IconButton(
+                  icon: Icon(
+                    ref.watch(themeModeProvider) == ThemeMode.dark
+                        ? Icons.light_mode_outlined
+                        : Icons.dark_mode_outlined,
                   ),
+                  tooltip: 'Dark Mode',
+                  onPressed: () =>
+                      ref.read(themeModeProvider.notifier).toggle(),
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.logout),
-                tooltip: 'Logout',
-                onPressed: () async {
-                  await ref.read(authNotifierProvider.notifier).logout();
-                },
-              ),
-              const SizedBox(width: 8),
-            ],
+                IconButton(
+                  icon: const Icon(Icons.logout_outlined),
+                  tooltip: 'Logout',
+                  onPressed: () async {
+                    await ref.read(authNotifierProvider.notifier).logout();
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
