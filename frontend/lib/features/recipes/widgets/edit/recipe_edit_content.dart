@@ -200,8 +200,7 @@ class RecipeEditContent extends StatelessWidget {
         Text('Tags',
             style: Theme.of(context)
                 .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.w600)),
+                .titleMedium),
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,
@@ -227,8 +226,7 @@ class RecipeEditContent extends StatelessWidget {
         Text('Zutaten',
             style: Theme.of(context)
                 .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.w600)),
+                .titleMedium),
         const SizedBox(height: 8),
         ...editIngredients.asMap().entries.map((e) => InlineIngredientTile(
               key: ValueKey('ing-${e.key}'),
@@ -252,8 +250,7 @@ class RecipeEditContent extends StatelessWidget {
         Text('Zubereitung',
             style: Theme.of(context)
                 .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.w600)),
+                .titleMedium),
         const SizedBox(height: 8),
         ...editSteps.asMap().entries.map((e) => InlineStepTile(
               key: ValueKey('step-${e.key}'),
@@ -276,10 +273,7 @@ class RecipeEditContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Notizen',
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.copyWith(fontWeight: FontWeight.w600)),
+            style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
         Stack(
           children: [

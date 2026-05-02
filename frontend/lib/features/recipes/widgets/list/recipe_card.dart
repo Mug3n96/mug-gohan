@@ -28,13 +28,14 @@ class RecipeCard extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
+        color: scheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.4)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -50,40 +51,66 @@ class RecipeCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AspectRatio(
-                aspectRatio: 16 / 10,
-                child: _ImageArea(recipe: recipe),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 10,
+                    child: _ImageArea(recipe: recipe),
+                  ),
+                ),
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         recipe.hasTitle ? recipe.title : 'Neues Rezept',
-                        style: theme.textTheme.titleSmall?.copyWith(
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
+                          height: 1.2,
                           color: recipe.hasTitle
                               ? scheme.onSurface
                               : scheme.onSurface.withAlpha(80),
                         ),
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (recipe.description.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Text(
                           recipe.description,
                           style: theme.textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurface.withAlpha(140)),
+                            color: scheme.onSurface.withAlpha(150),
+                            height: 1.4,
+                          ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
                       const Spacer(),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
+                      Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: scheme.outlineVariant.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(height: 10),
                       _MetaRow(recipe: recipe),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                height: 3,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.primary,
+                      AppTheme.primary.withValues(alpha: 0.4),
                     ],
                   ),
                 ),
@@ -112,54 +139,151 @@ class _ImageArea extends StatelessWidget {
           )
         : _Placeholder(recipe: recipe);
 
-    if (recipe.tags.isEmpty) return base;
-
     return Stack(
       fit: StackFit.expand,
       children: [
         base,
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(10, 24, 10, 8),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withValues(alpha: 0.55),
-                ],
+        if (recipe.difficulty.isNotEmpty)
+          Positioned(
+            top: 10,
+            right: 10,
+            child: _DifficultyPill(label: recipe.difficulty),
+          ),
+        if (recipe.tags.isNotEmpty)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(10, 28, 10, 10),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.55),
+                  ],
+                ),
               ),
-            ),
-            child: Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: [
-                for (final tag in recipe.tags)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.92),
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    child: Text(
-                      tag,
-                      style: TextStyle(
-                        color: AppTheme.primary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-              ],
+              child: _TagsRow(tags: recipe.tags),
             ),
           ),
-        ),
       ],
+    );
+  }
+}
+
+class _TagsRow extends StatelessWidget {
+  const _TagsRow({required this.tags});
+  final List<String> tags;
+
+  static const _spacing = 5.0;
+  static const _hPad = 10.0; // matches _TagPill horizontal padding
+  static const _textStyle = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.1,
+  );
+
+  double _pillWidth(String label) {
+    final tp = TextPainter(
+      text: TextSpan(text: label, style: _textStyle),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+    return tp.width + _hPad * 2;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxW = constraints.maxWidth;
+        final visible = <String>[];
+        double used = 0;
+
+        for (var i = 0; i < tags.length; i++) {
+          final tag = tags[i];
+          final pillW = _pillWidth(tag);
+          final sep = visible.isEmpty ? 0.0 : _spacing;
+          final remaining = tags.length - i - 1;
+          final reserveOverflow = remaining > 0
+              ? _spacing + _pillWidth('+$remaining')
+              : 0.0;
+
+          if (used + sep + pillW + reserveOverflow <= maxW) {
+            visible.add(tag);
+            used += sep + pillW;
+          } else {
+            break;
+          }
+        }
+
+        final overflow = tags.length - visible.length;
+
+        return Wrap(
+          spacing: _spacing,
+          runSpacing: _spacing,
+          children: [
+            for (final tag in visible) _TagPill(label: tag),
+            if (overflow > 0) _TagPill(label: '+$overflow', emphasized: true),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _TagPill extends StatelessWidget {
+  const _TagPill({required this.label, this.emphasized = false});
+  final String label;
+  final bool emphasized;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: emphasized
+            ? AppTheme.primary
+            : Colors.white.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: emphasized ? Colors.white : AppTheme.primary,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.1,
+        ),
+      ),
+    );
+  }
+}
+
+class _DifficultyPill extends StatelessWidget {
+  const _DifficultyPill({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+        ),
+      ),
     );
   }
 }
@@ -172,7 +296,12 @@ class _Placeholder extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        const Positioned.fill(child: ImagePlaceholder(iconSize: 40)),
+        Positioned.fill(
+          child: ImagePlaceholder(
+            iconSize: 40,
+            title: recipe.hasTitle ? recipe.title : null,
+          ),
+        ),
         if (recipe.isDraft && !recipe.hasTitle)
           Positioned(
             top: 10,
@@ -207,7 +336,7 @@ class _MetaRow extends StatelessWidget {
 
     if (recipe.prepTime.isNotEmpty || recipe.cookTime.isNotEmpty) {
       chips.add(_Chip(
-        icon: Icons.timer_outlined,
+        icon: Icons.schedule_outlined,
         label: [recipe.prepTime, recipe.cookTime]
             .where((s) => s.isNotEmpty)
             .join(' + '),
@@ -215,16 +344,17 @@ class _MetaRow extends StatelessWidget {
     }
     if (recipe.portions > 0) {
       chips.add(_Chip(
-        icon: Icons.people_outline,
-        label: '${recipe.portions}',
+        icon: Icons.person_outline,
+        label:
+            '${recipe.portions} ${recipe.portions == 1 ? 'Portion' : 'Portionen'}',
       ));
     }
 
     if (chips.isEmpty) return const SizedBox.shrink();
 
     return Wrap(
-      spacing: 6,
-      runSpacing: 4,
+      spacing: 14,
+      runSpacing: 6,
       children: chips,
     );
   }
@@ -241,13 +371,14 @@ class _Chip extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 11, color: scheme.onSurface.withAlpha(120)),
-        const SizedBox(width: 3),
+        Icon(icon, size: 14, color: scheme.onSurface.withAlpha(140)),
+        const SizedBox(width: 5),
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: scheme.onSurface.withAlpha(140),
-                fontSize: 10,
+                color: scheme.onSurface.withAlpha(160),
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
               ),
         ),
       ],

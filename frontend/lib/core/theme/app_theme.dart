@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../models/app_config.dart';
 
@@ -54,20 +55,45 @@ class AppTheme {
   static ThemeData get dark => _buildThemeData(_buildScheme(Brightness.dark));
   static ThemeData get light => _buildThemeData(_scheme);
 
+  static TextTheme _buildTextTheme(ColorScheme scheme) {
+    final base = ThemeData(brightness: scheme.brightness).textTheme;
+    final serif = GoogleFonts.frauncesTextTheme(base);
+    final sans = GoogleFonts.interTextTheme(base);
+    return sans.copyWith(
+      displayLarge: serif.displayLarge?.copyWith(
+          fontWeight: FontWeight.w700, color: scheme.onSurface),
+      displayMedium: serif.displayMedium?.copyWith(
+          fontWeight: FontWeight.w700, color: scheme.onSurface),
+      displaySmall: serif.displaySmall?.copyWith(
+          fontWeight: FontWeight.w700, color: scheme.onSurface),
+      headlineLarge: serif.headlineLarge?.copyWith(
+          fontWeight: FontWeight.w700, color: scheme.onSurface),
+      headlineMedium: serif.headlineMedium?.copyWith(
+          fontWeight: FontWeight.w700, color: scheme.onSurface),
+      headlineSmall: serif.headlineSmall?.copyWith(
+          fontWeight: FontWeight.w700, color: scheme.onSurface),
+      titleLarge: serif.titleLarge?.copyWith(
+          fontWeight: FontWeight.w700, color: scheme.onSurface),
+      titleMedium: serif.titleMedium?.copyWith(
+          fontWeight: FontWeight.w700, color: scheme.onSurface),
+    );
+  }
+
   static ThemeData _buildThemeData(ColorScheme scheme) => ThemeData(
         useMaterial3: true,
         colorScheme: scheme,
         scaffoldBackgroundColor: scheme.surface,
+        textTheme: _buildTextTheme(scheme),
         appBarTheme: AppBarTheme(
           backgroundColor: scheme.surface,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
           scrolledUnderElevation: 0,
           centerTitle: false,
-          titleTextStyle: TextStyle(
+          titleTextStyle: GoogleFonts.fraunces(
             color: scheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
           ),
           iconTheme: IconThemeData(color: scheme.onSurface),
         ),

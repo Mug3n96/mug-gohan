@@ -214,8 +214,7 @@ class _RecipeViewContentState extends ConsumerState<RecipeViewContent> {
         Text('Zubereitung',
             style: Theme.of(context)
                 .textTheme
-                .titleLarge
-                ?.copyWith(fontWeight: FontWeight.w600)),
+                .titleLarge),
         const SizedBox(height: 12),
         ...sorted
             .asMap()

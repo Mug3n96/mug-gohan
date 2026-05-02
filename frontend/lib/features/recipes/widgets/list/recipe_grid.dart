@@ -39,10 +39,10 @@ class RecipeGrid extends StatelessWidget {
                     ? 2
                     : 1;
         final aspectRatio = crossAxisCount == 1
-            ? 1.05
+            ? 1.0
             : crossAxisCount == 2
                 ? 0.95
-                : 0.82;
+                : 0.86;
         return GridView.builder(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -89,6 +89,11 @@ class TagFilterBar extends StatelessWidget {
             selected: active,
             onSelected: (_) => onToggle(tag),
             visualDensity: VisualDensity.compact,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            elevation: 0,
+            pressElevation: 0,
+            shadowColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
             showCheckmark: false,
             backgroundColor: Colors.transparent,
             selectedColor: AppTheme.primary.withAlpha(35),
@@ -97,6 +102,8 @@ class TagFilterBar extends StatelessWidget {
               color: active ? AppTheme.primary : null,
               fontWeight: active ? FontWeight.w600 : FontWeight.w500,
             ),
+            labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             side: BorderSide(
               color:
                   active ? AppTheme.primary : AppTheme.primary.withAlpha(50),
