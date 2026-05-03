@@ -97,5 +97,5 @@ RECIPE SCHEMA:
 }
 
 CURRENT RECIPE:
-${JSON.stringify(recipe, null, 2)}`;
+${JSON.stringify((({ image_url, ...rest }) => rest)(recipe), null, 2)}`;
 }
