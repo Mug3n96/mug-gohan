@@ -142,7 +142,7 @@ router.put('/:id', (req: Request, res: Response) => {
     UPDATE recipes SET title=@title, description=@description, portions=@portions, prep_time=@prep_time,
     cook_time=@cook_time, difficulty=@difficulty, cuisine=@cuisine, category=@category,
     tags=@tags, ingredients=@ingredients, steps=@steps,
-    notes=@notes, image_url=@image_url, status=@status, updated_at=@updated_at WHERE id=@id
+    notes=@notes, status=@status, updated_at=@updated_at WHERE id=@id
   `).run({
     ...updated,
     tags: JSON.stringify(updated.tags),
