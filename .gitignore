@@ -128,3 +128,15 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+
+# Per-deployment config (copy from config.json.example). Kept local so private
+# branding/persona never lands in the repo. Defaults ship in
+# config.json.example and the backend's built-in fallbacks.
+/config.json
+
+# Per-deployment branding (favicon.png, avatar.svg, avatar-icon.svg) dropped
+# into ./branding/. Served by the backend; bundled defaults used when absent.
+# Kept local so private art never lands in the repo (the dir itself is tracked
+# via .gitkeep so the compose mount always has a source).
+/branding/*
+!/branding/.gitkeep

@@ -4,7 +4,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:record/record.dart';
@@ -13,6 +12,7 @@ import '../../../../core/api/api_client.dart';
 import '../../../../core/providers/config_provider.dart';
 import '../../../../core/utils/platform_file.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/assistant_avatar.dart';
 import '../../providers/chat_provider.dart';
 import 'chat_empty_state.dart';
 import 'chat_input.dart';
@@ -249,15 +249,15 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
             padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
             child: Row(
               children: [
-                SvgPicture.asset(
-                  'assets/icons/remy_icon.svg',
-                  height: 28,
+                AssistantAvatar(
+                  size: 28,
+                  icon: true,
                   colorFilter: ColorFilter.mode(AppTheme.primaryLight, BlendMode.srcIn),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Remy',
+                    ref.watch(appConfigProvider).assistant.name,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),

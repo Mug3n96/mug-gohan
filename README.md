@@ -19,12 +19,16 @@ The name comes from Japanese: 無限 (mugen) = "unlimited" + ごはん (gohan) =
 - **LLM:** Ollama (local or cloud models)
 - **Deployment:** Docker Compose
 
+---
+
 ## Quick Start
+
+Runs everything locally on `http://localhost:3000`.
 
 ### Requirements
 
 - Docker + Docker Compose
-- Flutter SDK (for building)
+- Flutter SDK (for building the web app)
 
 ### Setup
 
@@ -37,17 +41,23 @@ cd mug-gohan
 cp .env.example .env
 # Edit .env: set API_KEY and choose your Ollama model
 
+cp config.json.example config.json
+# Optional: edit config.json to set theme, UI texts and the AI persona
+
 # 3. Build and start
 ./build.sh
 ```
 
 Open [http://localhost:3000](http://localhost:3000) and enter your API key.
 
-`build.sh` builds the Flutter web app, copies it into the backend, and starts all Docker containers.
+`build.sh` builds the Flutter web app, copies it into the backend, and starts all
+Docker containers. The backend serves **both** the web app and the API on port 3000.
 
-### Ollama Models
+---
 
-**Option A: Local Ollama container (default)**
+## Ollama Models
+
+### Option A: Local Ollama container (default)
 
 The `ollama` service in `compose.yml` runs Ollama locally.
 
@@ -73,7 +83,7 @@ Pull a local model once before use:
 docker compose exec ollama ollama pull gemma4:e2b
 ```
 
-**Option B: Direct ollama.com API (no local container)**
+### Option B: Direct ollama.com API (no local container)
 
 If you don't want to run the Ollama container at all, point directly to ollama.com:
 
@@ -86,6 +96,100 @@ OLLAMA_HOST=https://ollama.com
 OLLAMA_MODEL=gemma4:31b-cloud
 OLLAMA_API_KEY=your-api-key
 ```
+
+---
+
+## Production Deployment (Reverse Proxy)
+
+For a public deployment you put a reverse proxy in front of the app for a domain
+name and HTTPS. The app still runs via `./build.sh` and listens on `127.0.0.1:3000`;
+the proxy terminates TLS and forwards to it.
+
+### DNS
+
+Point an **A record** (and **AAAA** for IPv6) for your domain to the server's
+**public IP address**:
+
+```
+rezepte.example.com.   A     203.0.113.10
+rezepte.example.com.   AAAA  2001:db8::10
+```
+
+Wait until `dig +short rezepte.example.com` returns your server IP before requesting
+a certificate.
+
+> **Two settings this app requires on any proxy:**
+> - **Long read timeout** — LLM chat responses can take a while (cold model start, up
+>   to ~180s). The default 60s would cut the request mid-generation.
+> - **Large request body** — image uploads are sent as Base64; the backend accepts up
+>   to 50 MB.
+
+### Option 1: nginx (recommended)
+
+**1. Create the site config** at `/etc/nginx/sites-available/mug-gohan`:
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name rezepte.example.com;
+
+    client_max_body_size 50m;        # Base64 image uploads
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout 300s;     # LLM responses are slow
+        proxy_send_timeout 300s;
+    }
+}
+```
+
+**2. Enable it** by symlinking into `sites-enabled`:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/mug-gohan /etc/nginx/sites-enabled/
+sudo nginx -t            # check config
+sudo systemctl reload nginx
+```
+
+**3. Add HTTPS with Let's Encrypt** (certbot edits the config and sets up renewal):
+
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d rezepte.example.com
+```
+
+certbot adds the `listen 443 ssl` block and a redirect from HTTP to HTTPS, and
+renews automatically via a systemd timer.
+
+### Option 2: Caddy (automatic HTTPS)
+
+Caddy fetches and renews certificates by itself — no certbot step. Put this in
+`/etc/caddy/Caddyfile`:
+
+```caddy
+rezepte.example.com {
+    reverse_proxy 127.0.0.1:3000
+    request_body {
+        max_size 50MB
+    }
+}
+```
+
+```bash
+sudo systemctl reload caddy
+```
+
+Caddy streams proxied responses without a default response timeout, so the long
+LLM requests work out of the box.
+
+---
 
 ## Development
 
@@ -112,7 +216,8 @@ flutter run -d chrome --web-port=8080
 CHROME_EXECUTABLE=/usr/bin/brave flutter run -d chrome --web-port=8080
 ```
 
-The Flutter dev server runs on port 8080 with hot reload. It talks to the backend on `http://localhost:3000`.
+The Flutter dev server runs on port 8080 with hot reload. It talks to the backend
+on `http://localhost:3000`.
 
 ### Building for production
 
@@ -133,6 +238,36 @@ flutter build apk --release
 # APK is at build/app/outputs/flutter-apk/app-release.apk
 ```
 
+---
+
+## Configuration
+
+App appearance, UI strings and the AI assistant's persona are read from
+`config.json` (mounted read-only into the container). Edit it and restart the
+backend — no rebuild needed:
+
+- `theme` — seed and accent color
+- `strings` — UI texts (titles, empty states, greetings)
+- `assistant` — the AI's name, persona and language rules (the technical
+  response-format rules stay in the backend so the parser cannot break)
+
+### Custom branding (favicon + AI avatar)
+
+Drop these files into the `branding/` folder and restart the backend — no
+rebuild needed (the folder is mounted read-only):
+
+| `branding/` file | Overrides |
+|---|---|
+| `favicon.png` | browser tab icon |
+| `avatar.svg` | the large assistant illustration (empty chat) |
+| `avatar-icon.svg` | the small assistant icon (chat header, recipe detail) |
+
+When a file is absent the app uses its bundled neutral default (a small
+chef-bot). The avatars are rendered as a single-color silhouette tinted with the
+theme color, so design them as flat shapes — fine detail and color are dropped.
+Custom branding is applied on the web app; the Android APK always uses the
+bundled default.
+
 ## Environment Variables
 
 | Variable | Description | Default |
@@ -143,3 +278,4 @@ flutter build apk --release
 | `OLLAMA_API_KEY` | Only needed for Option B (direct ollama.com API) | – |
 | `PORT` | Backend port | `3000` |
 | `DATA_DIR` | SQLite database directory | `./data` |
+| `WHISPER_URL` | Optional Whisper service URL; enables the mic/voice button when set | – |

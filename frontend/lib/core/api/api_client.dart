@@ -39,12 +39,15 @@ class ApiClient {
     return _handle(res);
   }
 
-  Future<dynamic> post(String path, Map<String, dynamic> body) async {
-    final res = await http.post(
+  Future<dynamic> post(String path, Map<String, dynamic> body,
+      {Duration? timeout}) async {
+    var request = http.post(
       Uri.parse('$_baseUrl$path'),
       headers: _headers,
       body: jsonEncode(body),
     );
+    if (timeout != null) request = request.timeout(timeout);
+    final res = await request;
     return _handle(res);
   }
 

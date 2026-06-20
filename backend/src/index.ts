@@ -34,15 +34,28 @@ app.use('/api/transcribe', authMiddleware, transcribeRouter);
 // Serve Flutter web build as static files
 const frontendPath = path.join(__dirname, '..', 'public');
 
-// Allow favicon to be overridden by placing a favicon.png next to docker-compose.yml
-const customFavicon = path.join(process.cwd(), 'favicon.png');
+// Optional per-deployment branding lives in ./branding/ (mounted read-only).
+// Each file is optional; bundled defaults are used when absent.
+const brandingPath = path.join(process.cwd(), 'branding');
+
+// Favicon: ./branding/favicon.png overrides the bundled one.
 app.get('/favicon.png', (_req, res) => {
-  if (fs.existsSync(customFavicon)) {
-    res.sendFile(customFavicon);
-  } else {
-    res.sendFile(path.join(frontendPath, 'favicon.png'));
-  }
+  const custom = path.join(brandingPath, 'favicon.png');
+  res.sendFile(fs.existsSync(custom) ? custom : path.join(frontendPath, 'favicon.png'));
 });
+
+// AI avatar: ./branding/avatar.svg + avatar-icon.svg. Served raw; the frontend
+// falls back to its bundled default (advertised via /api/config features).
+function sendBranding(res: express.Response, file: string): void {
+  const filePath = path.join(brandingPath, file);
+  if (fs.existsSync(filePath)) {
+    res.type('image/svg+xml').sendFile(filePath);
+  } else {
+    res.status(404).end();
+  }
+}
+app.get('/api/branding/avatar', (_req, res) => sendBranding(res, 'avatar.svg'));
+app.get('/api/branding/avatar-icon', (_req, res) => sendBranding(res, 'avatar-icon.svg'));
 
 app.use(express.static(frontendPath));
 app.get('*', (_req, res) => {

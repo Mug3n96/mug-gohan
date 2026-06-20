@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local-only branded mascot art (e.g. Remy). The repo ships neutral
+# assistant.svg / assistant_icon.svg defaults; keep proprietary art local.
+assets/icons/remy.svg
+assets/icons/remy_icon.svg

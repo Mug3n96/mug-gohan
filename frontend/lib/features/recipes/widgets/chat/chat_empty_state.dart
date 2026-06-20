@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/providers/config_provider.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/assistant_avatar.dart';
 
 class ChatEmptyState extends ConsumerWidget {
   const ChatEmptyState({super.key});
@@ -29,9 +29,8 @@ class ChatEmptyState extends ConsumerWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 12),
-              SvgPicture.asset(
-                'assets/icons/remy.svg',
-                height: 216,
+              AssistantAvatar(
+                size: 216,
                 colorFilter: ColorFilter.mode(
                   AppTheme.primaryLight.withAlpha(160),
                   BlendMode.srcIn,

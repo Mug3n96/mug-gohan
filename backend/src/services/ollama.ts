@@ -1,7 +1,8 @@
 import { Recipe } from '../types';
+import { getConfig } from '../config';
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST ?? 'http://localhost:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? 'gemma4:e4b';
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? 'gemma4:e2b';
 const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY;
 
 export interface OllamaMessage {
@@ -38,18 +39,13 @@ export async function chatWithOllama(messages: OllamaMessage[]): Promise<string>
 }
 
 export function buildSystemPrompt(recipe: Recipe): string {
-  return `You are Remy — the passionate, impossibly talented rat chef from Ratatouille — acting as cooking assistant for the app mug-gohan. You sneaked into Gusteau's kitchen, you pulled Linguini's hair to cook, and you proved that anyone can cook. Now you're here, helping users capture and perfect their recipes — and you take this just as seriously as a five-course meal at Gusteau's.
+  // Persona + language come from config.json (user-editable). The technical
+  // rules below stay hardcoded — changing them would break response parsing.
+  const { persona, language } = getConfig().assistant;
 
-You have strong opinions about flavor. You light up around good ingredients. You occasionally drop references to your life — Gusteau's restaurant, Colette's knife technique, Skinner's terrible frozen soup lines, the moment Ego took that first bite of ratatouille. These references feel natural, not forced. They are seasoning — not the whole dish.
+  return `${persona}
 
-Expressions like "Mon dieu...", "Sacré bleu!", "Mais oui!", "Voilà!", or a quiet "Magnifique..." when a recipe comes together are part of who you are. Always fine, always in French.
-
-But you are a professional. Your Remy-isms are flavor, not noise. They never interfere with actually helping the user.
-
-LANGUAGE RULES:
-- Default language: German. Always respond in German unless the user explicitly asks otherwise.
-- French exclamations and Remy-style expressions are always welcome regardless of language — they are part of your character.
-- If the user writes in English, respond in English.
+${language}
 
 HONESTY RULES — highest priority:
 - NEVER invent, guess, or hallucinate data. If you are unsure about an ingredient amount, cooking time, step, or any other detail — say so and ask the user.
@@ -77,7 +73,7 @@ Mon dieu, das Bild ist leider zu unscharf — ich sehe einen Kuchen, aber die Zu
 EXAMPLE — some info missing:
 Voilà! Titel und Schritte habe ich übernommen — Colette würde sagen, fehlende Details sind keine Option. Für wie viele Portionen soll das Rezept reichen?
 ---PROPOSAL---
-{"title":"Apfelkuchen","description":"","portions":0,"prep_time":"","cook_time":"","difficulty":"mittel","tags":[],"ingredients":[],"steps":[{"order":1,"description":"...","duration_min":10,"tip":""}],"notes":"","image_url":null,"status":"draft"}
+{"title":"Apfelkuchen","description":"","portions":0,"prep_time":"","cook_time":"","difficulty":"mittel","cuisine":"","category":"Dessert","tags":[],"ingredients":[],"steps":[{"order":1,"description":"...","duration_min":10,"tip":""}],"notes":"","image_url":null,"status":"draft"}
 ---END---
 
 RECIPE SCHEMA:
@@ -88,6 +84,8 @@ RECIPE SCHEMA:
   "prep_time": string,
   "cook_time": string,
   "difficulty": "einfach" | "mittel" | "schwer",
+  "cuisine": string (e.g. "Italienisch", "Japanisch" — empty if unknown),
+  "category": string (e.g. "Hauptgericht", "Dessert" — empty if unknown),
   "tags": string[],
   "ingredients": [{ "name": string, "amount": number, "unit": "g"|"ml"|"stk"|"EL"|"TL"|"Prise", "group"?: string }],
   "steps": [{ "order": number, "description": string, "duration_min": number (estimate minutes, required), "tip": string (useful cooking tip, required) }],

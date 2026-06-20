@@ -10,8 +10,14 @@ part 'chat_provider.g.dart';
 @riverpod
 class ChatNotifier extends _$ChatNotifier {
   @override
-  Future<List<ChatMessage>> build(String recipeId) async {
-    final client = ref.watch(apiClientProvider);
+  Future<List<ChatMessage>> build(String recipeId) {
+    ref.watch(apiClientProvider); // rebuild on auth / server-url change
+    return _fetchHistory();
+  }
+
+  /// Loads the persisted chat history from the backend (source of truth).
+  Future<List<ChatMessage>> _fetchHistory() async {
+    final client = ref.read(apiClientProvider);
     final data =
         await client.get('/api/recipes/$recipeId/chat') as List<dynamic>;
     return data
@@ -43,6 +49,7 @@ class ChatNotifier extends _$ChatNotifier {
       final data = await client.post(
         '/api/recipes/$recipeId/chat',
         body,
+        timeout: const Duration(seconds: 180), // LLM cold-start can be slow
       ) as Map<String, dynamic>;
 
       Recipe? proposal;
@@ -76,24 +83,39 @@ class ChatNotifier extends _$ChatNotifier {
         500 => 'Hoppla, mir ist etwas aus den Pfoten gefallen. Versuch\'s nochmal!',
         _ => 'Da ist etwas schiefgelaufen (${e.statusCode}). Versuch\'s nochmal!',
       };
-      final errorMsg = ChatMessage(
-        id: 'error-${DateTime.now().millisecondsSinceEpoch}',
-        recipeId: recipeId,
-        role: 'assistant',
-        content: errorText,
-        createdAt: DateTime.now().toIso8601String(),
-      );
-      state = AsyncData([...current, optimisticUser, errorMsg]);
+      await _recoverOrShowError(current, optimisticUser, errorText);
     } catch (_) {
-      final errorMsg = ChatMessage(
-        id: 'error-${DateTime.now().millisecondsSinceEpoch}',
-        recipeId: recipeId,
-        role: 'assistant',
-        content: 'Keine Verbindung zum Server. Netz prüfen und nochmal versuchen!',
-        createdAt: DateTime.now().toIso8601String(),
-      );
-      state = AsyncData([...current, optimisticUser, errorMsg]);
+      await _recoverOrShowError(current, optimisticUser,
+          'Keine Verbindung zum Server. Netz prüfen und nochmal versuchen!');
     }
+  }
+
+  /// The backend persists the user message, then the assistant reply, before
+  /// the client may have given up (timeout / dropped connection / proxy cut).
+  /// So on failure we refetch the history: if the reply was already saved we
+  /// show it, otherwise we fall back to an error bubble.
+  Future<void> _recoverOrShowError(
+    List<ChatMessage> current,
+    ChatMessage optimisticUser,
+    String errorText,
+  ) async {
+    try {
+      final history = await _fetchHistory();
+      if (history.isNotEmpty && history.last.role == 'assistant') {
+        state = AsyncData(history);
+        return;
+      }
+    } catch (_) {
+      // recovery failed too — fall through to the error bubble
+    }
+    final errorMsg = ChatMessage(
+      id: 'error-${DateTime.now().millisecondsSinceEpoch}',
+      recipeId: recipeId,
+      role: 'assistant',
+      content: errorText,
+      createdAt: DateTime.now().toIso8601String(),
+    );
+    state = AsyncData([...current, optimisticUser, errorMsg]);
   }
 
   Future<void> applyProposal(String messageId, Recipe proposal) async {

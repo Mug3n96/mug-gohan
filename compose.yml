@@ -11,6 +11,9 @@ services:
     volumes:
       - ./data:/app/data
       - ./config.json:/app/config.json:ro
+      # Optional branding: drop favicon.png / avatar.svg / avatar-icon.svg
+      # into ./branding/ to override. Bundled defaults are used when absent.
+      - ./branding:/app/branding:ro
     depends_on:
       ollama:
         condition: service_healthy
@@ -43,12 +46,13 @@ services:
   # Whisper – optional voice transcription (enables mic button in chat)
   # Uncomment this service and set WHISPER_URL=http://whisper:9000 in your .env to enable.
   # Remove WHISPER_URL or leave it empty to disable voice input entirely.
-  whisper:
-    image: onerahmet/openai-whisper-asr-webservice:latest
-    restart: unless-stopped
-    environment:
-      - ASR_MODEL=base        # tiny / base / small / medium / large
-      - ASR_ENGINE=openai_whisper
+  # PAUSED — uncomment to re-enable (frees ~750 MB RAM while off).
+  # whisper:
+  #   image: onerahmet/openai-whisper-asr-webservice:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     - ASR_MODEL=base        # tiny / base / small / medium / large
+  #     - ASR_ENGINE=openai_whisper
 
 volumes:
   ollama_data:

@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/providers/config_provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/assistant_avatar.dart';
 import '../models/recipe_model.dart';
 import '../providers/recipe_detail_provider.dart';
 import '../providers/recipes_provider.dart';
@@ -509,9 +510,9 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SvgPicture.asset(
-                          'assets/icons/remy_icon.svg',
-                          height: 20,
+                        AssistantAvatar(
+                          size: 20,
+                          icon: true,
                           colorFilter: ColorFilter.mode(
                             _chatOpen
                                 ? AppTheme.primaryLight
@@ -523,7 +524,7 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Remy',
+                          ref.watch(appConfigProvider).assistant.name,
                           style: TextStyle(
                             color: _chatOpen
                                 ? AppTheme.primaryLight

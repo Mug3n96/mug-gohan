@@ -1,0 +1,23 @@
+{
+  "theme": {
+    "seedColor": "#2D6A4F",
+    "accentColor": "#52B788"
+  },
+  "strings": {
+    "appTitle": "mug-gohan",
+    "loginTitle": "mug-gohan",
+    "loginSubtitle": "無限ごはん",
+    "remyGreeting": "Hey, ich bin Miso!",
+    "remySubtitle": "Lass uns zusammen Rezepte entwerfen",
+    "remyFooter": "Was für ein Rezept möchtest du entwerfen? Sende mir gerne Bilder, Notizen, Fotos oder eine Sprachnachricht und wir erstellen ein tolles Rezept!",
+    "listEmptyTitle": "Noch keine Rezepte",
+    "listEmptySubtitle": "Erstelle dein erstes Rezept\nund lass Miso dir helfen.",
+    "listCreateButton": "Rezept erstellen",
+    "recipeEmptyHint": "Noch leer — tippe auf ✏️\num mit Miso loszulegen."
+  },
+  "assistant": {
+    "name": "Miso",
+    "persona": "You are Miso, a friendly and level-headed cooking assistant for the app mug-gohan. You help users capture, structure and refine their recipes.\n\nKeep your answers short and to the point — usually a sentence or two, never rambling.\n\nWhen it fits naturally, add one small touch: a brief fun fact about the dish or an ingredient, or a note on where it comes from. Keep it to a single sentence, light and genuine — never forced, and never at the expense of being helpful.\n\nStay calm and neutral in tone — warm, but not over-the-top.",
+    "language": "LANGUAGE RULES:\n- Default language: German. Always respond in German unless the user explicitly asks otherwise.\n- If the user writes in English, respond in English."
+  }
+}

@@ -162,9 +162,12 @@ class _RecipeViewContentState extends ConsumerState<RecipeViewContent> {
 
     String fmt(num amount) {
       final s = amount * scale;
-      return s == s.roundToDouble()
-          ? s.toInt().toString()
-          : s.toStringAsFixed(1);
+      if (s == s.roundToDouble()) return s.toInt().toString();
+      // Up to 2 decimals, trailing zeros stripped: 0.2 → "0.2", 0.25 → "0.25".
+      return s
+          .toStringAsFixed(2)
+          .replaceAll(RegExp(r'0+$'), '')
+          .replaceAll(RegExp(r'\.$'), '');
     }
 
     return Column(

@@ -48,8 +48,15 @@ class _InlineIngredientTileState extends State<InlineIngredientTile> {
     super.didUpdateWidget(old);
     final i = widget.ingredient;
     if (_name.text != i.name) _name.text = i.name;
-    final a = i.amount == 0 ? '' : i.amount.toString();
-    if (_amount.text != a) _amount.text = a;
+    // Only overwrite the amount field when the model value really differs from
+    // what is currently typed. String-syncing would wipe a half-typed "0"
+    // (parses to 0 → '') and make entering "0.2" impossible. We also skip
+    // overwriting while the field holds unparseable mid-edit input ("." / "0,").
+    final typed = num.tryParse(_amount.text.replaceAll(',', '.'));
+    final midEdit = typed == null && i.amount == 0;
+    if (typed != i.amount && !midEdit) {
+      _amount.text = i.amount == 0 ? '' : i.amount.toString();
+    }
     final g = i.group ?? '';
     if (_group.text != g) _group.text = g;
     if (_unit != i.unit && i.unit.isNotEmpty) setState(() => _unit = i.unit);
@@ -66,7 +73,8 @@ class _InlineIngredientTileState extends State<InlineIngredientTile> {
 
   void _notify() => widget.onChanged(Ingredient(
         name: _name.text.trim(),
-        amount: num.tryParse(_amount.text) ?? 0,
+        // Accept German comma decimals ("0,2") as well as dot ("0.2").
+        amount: num.tryParse(_amount.text.replaceAll(',', '.')) ?? 0,
         unit: _unit,
         group: _group.text.trim().isEmpty ? null : _group.text.trim(),
       ));
