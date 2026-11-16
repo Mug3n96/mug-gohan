@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/api/api_client.dart';
@@ -27,7 +30,7 @@ class ChatNotifier extends _$ChatNotifier {
 
   Future<void> sendMessage(
     String message, {
-    String? imageData,
+    Uint8List? imageBytes,
     String? imageMime,
   }) async {
     final current = state.valueOrNull ?? [];
@@ -39,7 +42,7 @@ class ChatNotifier extends _$ChatNotifier {
       role: 'user',
       content: message,
       createdAt: DateTime.now().toIso8601String(),
-      imageData: imageData,
+      imageBytes: imageBytes,
       imageMime: imageMime,
       video: ChatVideo.fromText(message),
     );
@@ -47,7 +50,7 @@ class ChatNotifier extends _$ChatNotifier {
 
     final client = ref.read(apiClientProvider);
     final body = <String, dynamic>{'message': message};
-    if (imageData != null) body['imageData'] = imageData;
+    if (imageBytes != null) body['imageData'] = base64Encode(imageBytes);
     if (imageMime != null) body['imageMime'] = imageMime;
 
     try {
@@ -89,13 +92,13 @@ class ChatNotifier extends _$ChatNotifier {
       );
 
       // The backend adds the video title once it has looked the link up.
-      final sentUser = data['user_video'] is Map<String, dynamic>
-          ? optimisticUser.copyWith(
-              video: ChatVideo.fromJson(
-                data['user_video'] as Map<String, dynamic>,
-              ),
-            )
-          : optimisticUser;
+      final sentUser = optimisticUser.copyWith(
+        id: data['user_id'] as String?,
+        imageUrl: data['user_image_url'] as String?,
+        video: data['user_video'] is Map<String, dynamic>
+            ? ChatVideo.fromJson(data['user_video'] as Map<String, dynamic>)
+            : null,
+      );
 
       state = AsyncData([...updated, sentUser, assistantMsg]);
     } on ApiException catch (e) {

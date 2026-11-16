@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'recipe_model.dart';
 
 final _youTubeId = RegExp(
@@ -49,7 +51,8 @@ class ChatMessage {
   final Recipe? proposal;
   final String? proposalStatus; // 'accepted' | 'rejected' | null
   final String createdAt;
-  final String? imageData; // raw base64, no prefix
+  final String? imageUrl; // backend path, for stored messages
+  final Uint8List? imageBytes; // local bytes, for a message just sent
   final String? imageMime; // 'image/jpeg' | 'image/png' | 'application/pdf'
   final ChatVideo? video;
 
@@ -61,7 +64,8 @@ class ChatMessage {
     this.proposal,
     this.proposalStatus,
     required this.createdAt,
-    this.imageData,
+    this.imageUrl,
+    this.imageBytes,
     this.imageMime,
     this.video,
   });
@@ -76,26 +80,31 @@ class ChatMessage {
         : null,
     proposalStatus: j['proposal_status'] as String?,
     createdAt: j['created_at'] as String,
-    imageData: j['image_data'] as String?,
+    imageUrl: j['image_url'] as String?,
     imageMime: j['image_mime'] as String?,
     video: j['video'] is Map<String, dynamic>
         ? ChatVideo.fromJson(j['video'] as Map<String, dynamic>)
         : null,
   );
 
-  ChatMessage copyWith({String? proposalStatus, ChatVideo? video}) =>
-      ChatMessage(
-        id: id,
-        recipeId: recipeId,
-        role: role,
-        content: content,
-        proposal: proposal,
-        proposalStatus: proposalStatus ?? this.proposalStatus,
-        createdAt: createdAt,
-        imageData: imageData,
-        imageMime: imageMime,
-        video: video ?? this.video,
-      );
+  ChatMessage copyWith({
+    String? proposalStatus,
+    ChatVideo? video,
+    String? id,
+    String? imageUrl,
+  }) => ChatMessage(
+    id: id ?? this.id,
+    recipeId: recipeId,
+    role: role,
+    content: content,
+    proposal: proposal,
+    proposalStatus: proposalStatus ?? this.proposalStatus,
+    createdAt: createdAt,
+    imageUrl: imageUrl ?? this.imageUrl,
+    imageBytes: imageBytes,
+    imageMime: imageMime,
+    video: video ?? this.video,
+  );
 
   /// Message text without the YouTube link (the link is shown as a card).
   String get displayText => video == null
@@ -107,7 +116,7 @@ class ChatMessage {
 
   bool get proposalAccepted => proposalStatus == 'accepted';
   bool get proposalRejected => proposalStatus == 'rejected';
-  bool get hasImage => imageData != null;
+  bool get hasImage => imageUrl != null || imageBytes != null;
   bool get isPdf => imageMime == 'application/pdf';
   bool get isUser => role == 'user';
   bool get isAssistant => role == 'assistant';

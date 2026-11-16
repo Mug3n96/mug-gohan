@@ -1,3 +1,5 @@
+import { recipeImagePath } from './services/images';
+
 export interface Ingredient {
   name: string;
   amount: number;
@@ -64,22 +66,37 @@ export interface ChatVideo {
   analyzed: boolean;
 }
 
-export type RecipeRow = Omit<Recipe, 'tags' | 'ingredients' | 'steps'> & {
+/**
+ * Recipe columns without the image data itself (Base64, can be large).
+ * The image is served separately, see routes/recipes.ts GET /:id/image.
+ */
+export const RECIPE_COLUMNS =
+  'id, title, description, portions, prep_time, cook_time, difficulty, cuisine, category, ' +
+  'tags, ingredients, steps, notes, status, created_at, updated_at, image_version';
+
+export type RecipeRow = Omit<Recipe, 'tags' | 'ingredients' | 'steps' | 'image_url'> & {
   tags: string;
   ingredients: string;
   steps: string;
+  /** Content hash of the stored image, null without image. */
+  image_version: string | null;
 };
 
 export type ChatMessageRow = Omit<ChatMessage, 'proposal'> & {
   proposal: string | null;
 };
 
-/** Recipe rows store tags/ingredients/steps as JSON strings. */
+/**
+ * Recipe rows store tags/ingredients/steps as JSON strings. `image_url` in the
+ * API is the (cacheable) image endpoint, not the stored data URL.
+ */
 export function parseRecipe(row: RecipeRow): Recipe {
+  const { image_version, tags, ingredients, steps, ...rest } = row;
   return {
-    ...row,
-    tags: JSON.parse(row.tags),
-    ingredients: JSON.parse(row.ingredients),
-    steps: JSON.parse(row.steps),
+    ...rest,
+    tags: JSON.parse(tags),
+    ingredients: JSON.parse(ingredients),
+    steps: JSON.parse(steps),
+    image_url: image_version ? recipeImagePath(row.id, image_version) : null,
   };
 }

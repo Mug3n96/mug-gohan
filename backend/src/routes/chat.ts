@@ -1,19 +1,25 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/database';
-import { ChatMessageRow, RecipeRow, parseRecipe } from '../types';
+import { ChatMessageRow, RecipeRow, RECIPE_COLUMNS, parseRecipe } from '../types';
 import { chatWithOllama, buildSystemPrompt, OllamaError, OllamaMessage } from '../services/ollama';
 import { parseLlmResponse } from '../services/parser';
 import { findYouTubeId } from '../services/youtube';
 import { getVideo, resolveVideo, toChatVideo, videoContext } from '../services/videos';
+import { CHAT_IMAGE_MAX, chatImagePath, normalizeImage } from '../services/images';
 
 const router = Router();
 
-function parseChatMessage(row: ChatMessageRow) {
+/** History rows without the image data itself (served via /chat/:msgId/image). */
+type ChatListRow = Omit<ChatMessageRow, 'image_data'> & { has_image: number };
+
+function parseChatMessage(row: ChatListRow) {
+  const { has_image, ...rest } = row;
   const video = row.video_id ? getVideo(row.video_id) : undefined;
   return {
-    ...row,
+    ...rest,
     proposal: row.proposal ? JSON.parse(row.proposal) : null,
+    image_url: has_image ? chatImagePath(row.recipe_id, row.id) : null,
     video: video ? toChatVideo(video) : null,
   };
 }
@@ -38,8 +44,12 @@ function parseChatMessage(row: ChatMessageRow) {
 router.get('/:id/chat', (req: Request, res: Response) => {
   const db = getDb();
   const rows = db
-    .prepare('SELECT * FROM chat_messages WHERE recipe_id = ? ORDER BY created_at ASC')
-    .all(req.params.id) as ChatMessageRow[];
+    .prepare(`
+      SELECT id, recipe_id, role, content, proposal, proposal_status, created_at,
+             image_mime, video_id, image_data IS NOT NULL AS has_image
+      FROM chat_messages WHERE recipe_id = ? ORDER BY created_at ASC
+    `)
+    .all(req.params.id) as ChatListRow[];
   res.json(rows.map(parseChatMessage));
 });
 
@@ -73,7 +83,8 @@ router.get('/:id/chat', (req: Request, res: Response) => {
  */
 router.post('/:id/chat', async (req: Request, res: Response) => {
   const db = getDb();
-  const { message, imageData, imageMime } = req.body;
+  const { message } = req.body;
+  let { imageData, imageMime } = req.body as { imageData?: string; imageMime?: string };
 
   // Valid if either text or image is provided
   if (!message?.trim() && !imageData) {
@@ -81,10 +92,20 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
     return;
   }
 
-  const recipeRow = db.prepare('SELECT * FROM recipes WHERE id = ?').get(req.params.id) as RecipeRow | undefined;
+  const recipeRow = db.prepare(`SELECT ${RECIPE_COLUMNS} FROM recipes WHERE id = ?`).get(req.params.id) as RecipeRow | undefined;
   if (!recipeRow) { res.status(404).json({ error: 'Recipe not found' }); return; }
 
   const recipe = parseRecipe(recipeRow);
+
+  // Photos are stored (and sent to the LLM) as a sensibly sized JPEG.
+  if (imageData && imageMime?.startsWith('image/')) {
+    try {
+      imageData = (await normalizeImage(Buffer.from(imageData, 'base64'), CHAT_IMAGE_MAX)).toString('base64');
+      imageMime = 'image/jpeg';
+    } catch (err) {
+      console.warn('Chat image could not be normalized, storing as is:', (err as Error).message);
+    }
+  }
 
   // Save user message
   const userMsgId = uuidv4();
@@ -139,6 +160,8 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
       id: assistantMsgId,
       text,
       proposal,
+      user_id: userMsgId,
+      user_image_url: imageData ? chatImagePath(recipe.id, userMsgId) : null,
       user_video: resolved ? toChatVideo(resolved.video) : null,
     });
   } catch (err) {
@@ -171,6 +194,40 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
  *       200:
  *         description: Cleared
  */
+/**
+ * @openapi
+ * /api/recipes/{id}/chat/{msgId}/image:
+ *   get:
+ *     summary: Image attached to a chat message (cacheable)
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: msgId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Image (or PDF)
+ *       404:
+ *         description: No image
+ */
+router.get('/:id/chat/:msgId/image', (req: Request, res: Response) => {
+  const row = getDb()
+    .prepare('SELECT image_data, image_mime FROM chat_messages WHERE id = ? AND recipe_id = ?')
+    .get(req.params.msgId, req.params.id) as { image_data: string | null; image_mime: string | null } | undefined;
+  if (!row?.image_data) { res.status(404).end(); return; }
+  // Chat attachments never change.
+  res.set('Cache-Control', 'private, max-age=31536000, immutable');
+  res.type(row.image_mime ?? 'image/jpeg').send(Buffer.from(row.image_data, 'base64'));
+});
+
 router.delete('/:id/chat', (req: Request, res: Response) => {
   const db = getDb();
   db.prepare('DELETE FROM chat_messages WHERE recipe_id = ?').run(req.params.id);

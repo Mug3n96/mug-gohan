@@ -31,8 +31,17 @@ class ApiClient {
 
   Map<String, String> get _headers => {
     'Content-Type': 'application/json',
-    if (_apiKey != null) 'Authorization': 'Bearer $_apiKey',
+    ...authHeaders,
   };
+
+  /// Auth header for requests made outside this client (e.g. Image.network).
+  /// Same map instance while the key is unchanged, so image cache keys match.
+  late final Map<String, String> authHeaders = Map.unmodifiable({
+    if (_apiKey != null) 'Authorization': 'Bearer $_apiKey',
+  });
+
+  /// Absolute URL for a backend path like `/api/recipes/1/image`.
+  String resolve(String path) => path.startsWith('/') ? '$_baseUrl$path' : path;
 
   Future<dynamic> get(String path) async {
     final res = await http.get(Uri.parse('$_baseUrl$path'), headers: _headers);

@@ -11,6 +11,7 @@ import 'inline_step_tile.dart';
 import 'inline_tag_input.dart';
 import 'inline_text_field.dart';
 import '../detail/portion_stepper.dart';
+import '../../../../core/widgets/auth_image.dart';
 
 class RecipeEditContent extends StatelessWidget {
   const RecipeEditContent({
@@ -97,9 +98,9 @@ class RecipeEditContent extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               if (imageUrl != null)
-                Image.network(
+                AuthImage(
                   imageUrl,
-                  fit: BoxFit.cover,
+                  cacheWidth: 900,
                   errorBuilder: (ctx, err, st) => const ImagePlaceholder(),
                 )
               else

@@ -1,9 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/auth_image.dart';
 import '../../models/chat_model.dart';
 import '../../providers/chat_provider.dart';
 import 'proposal_card.dart';
@@ -85,14 +84,25 @@ class ChatMessageBubble extends ConsumerWidget {
                   else
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.memory(
-                        base64Decode(msg.imageData!),
-                        width: 180,
-                        height: 180,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) =>
-                            const Icon(Icons.broken_image, size: 40),
-                      ),
+                      child: msg.imageBytes != null
+                          ? Image.memory(
+                              msg.imageBytes!,
+                              width: 180,
+                              height: 180,
+                              fit: BoxFit.cover,
+                              cacheWidth:
+                                  (180 * MediaQuery.devicePixelRatioOf(context))
+                                      .round(),
+                              gaplessPlayback: true,
+                            )
+                          : AuthImage(
+                              msg.imageUrl!,
+                              width: 180,
+                              height: 180,
+                              cacheWidth: 180,
+                              errorBuilder: (_, _, _) =>
+                                  const Icon(Icons.broken_image, size: 40),
+                            ),
                     ),
                   if (text.isNotEmpty || msg.video != null)
                     const SizedBox(height: 8),

@@ -22,7 +22,7 @@ jobs:
 
       - name: Build Flutter Web
         working-directory: frontend
-        run: flutter build web --release
+        run: flutter build web --release --wasm
 
       - name: Copy web build to backend/public
         run: |

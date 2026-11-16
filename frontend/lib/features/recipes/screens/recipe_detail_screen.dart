@@ -15,6 +15,7 @@ import '../widgets/detail/recipe_view_content.dart';
 import '../widgets/edit/dashed_border_painter.dart';
 import '../widgets/edit/image_pick_helper.dart';
 import '../widgets/edit/recipe_edit_content.dart';
+import '../../../core/widgets/auth_image.dart';
 
 const double _kContentMaxWidth = 760;
 const double _kSidebarWidth = 380;
@@ -457,9 +458,7 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
             ]
           : null,
       flexibleSpace: !_editMode && recipe.imageUrl != null
-          ? FlexibleSpaceBar(
-              background: Image.network(recipe.imageUrl!, fit: BoxFit.cover),
-            )
+          ? FlexibleSpaceBar(background: AuthImage(recipe.imageUrl!))
           : null,
     );
   }

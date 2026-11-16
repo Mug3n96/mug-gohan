@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -166,10 +164,7 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
     final text = _inputCtrl.text.trim();
     if ((text.isEmpty && _pendingImageBytes == null) || _sending) return;
 
-    String? imageData;
-    if (_pendingImageBytes != null) {
-      imageData = base64Encode(_pendingImageBytes!);
-    }
+    final imageBytes = _pendingImageBytes;
 
     _inputCtrl.clear();
     final mime = _pendingMime;
@@ -180,7 +175,7 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
       _pendingFileName = null;
     });
 
-    if (text.startsWith('/') && imageData == null) {
+    if (text.startsWith('/') && imageBytes == null) {
       await _handleCommand(text);
       return;
     }
@@ -188,7 +183,7 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
     try {
       await ref
           .read(chatNotifierProvider(widget.recipeId).notifier)
-          .sendMessage(text, imageData: imageData, imageMime: mime);
+          .sendMessage(text, imageBytes: imageBytes, imageMime: mime);
       _scrollToBottom();
     } catch (e) {
       if (mounted) {

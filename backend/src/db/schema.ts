@@ -56,6 +56,9 @@ export function runMigrations(): void {
   if (!colNames.includes('category')) {
     db.exec(`ALTER TABLE recipes ADD COLUMN category TEXT NOT NULL DEFAULT ''`);
   }
+  if (!colNames.includes('image_version')) {
+    db.exec(`ALTER TABLE recipes ADD COLUMN image_version TEXT`);
+  }
 
   const chatCols = db.prepare(`PRAGMA table_info(chat_messages)`).all() as { name: string }[];
   const chatColNames = chatCols.map(c => c.name);

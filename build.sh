@@ -3,7 +3,7 @@ set -e
 
 echo "Building Flutter web..."
 cd frontend
-flutter build web --release
+flutter build web --release --wasm
 
 echo "Copying web build to backend/public/..."
 cp -r build/web/* ../backend/public/

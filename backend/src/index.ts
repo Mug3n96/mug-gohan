@@ -5,6 +5,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { initDb } from './db/database';
 import { runMigrations } from './db/schema';
+import { migrateImages } from './db/imageMigration';
 import { authMiddleware } from './middleware/auth';
 import recipesRouter from './routes/recipes';
 import chatRouter from './routes/chat';
@@ -22,6 +23,7 @@ app.use(express.json({ limit: '50mb' }));
 
 initDb();
 runMigrations();
+migrateImages().catch(err => console.error('Image migration failed:', err));
 
 setupSwagger(app);
 
@@ -56,6 +58,15 @@ function sendBranding(res: express.Response, file: string): void {
 }
 app.get('/api/branding/avatar', (_req, res) => sendBranding(res, 'avatar.svg'));
 app.get('/api/branding/avatar-icon', (_req, res) => sendBranding(res, 'avatar-icon.svg'));
+
+// Cross-origin isolation lets the WebAssembly build render multi-threaded
+// (smoother scrolling). `credentialless` keeps cross-origin images such as
+// YouTube thumbnails working.
+app.use((_req, res, next) => {
+  res.set('Cross-Origin-Opener-Policy', 'same-origin');
+  res.set('Cross-Origin-Embedder-Policy', 'credentialless');
+  next();
+});
 
 app.use(express.static(frontendPath));
 app.get('*', (_req, res) => {

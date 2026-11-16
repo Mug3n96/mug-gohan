@@ -78,6 +78,7 @@ class _ChatInputState extends State<ChatInput> {
                         width: 48,
                         height: 48,
                         fit: BoxFit.cover,
+                        cacheWidth: 144,
                       ),
                     ),
                   const SizedBox(width: 10),

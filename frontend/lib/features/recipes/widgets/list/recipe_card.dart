@@ -7,6 +7,7 @@ import '../../models/recipe_model.dart';
 import '../../providers/recipes_provider.dart';
 import '../shared/image_placeholder.dart';
 import 'delete_recipe_dialog.dart';
+import '../../../../core/widgets/auth_image.dart';
 
 class RecipeCard extends ConsumerWidget {
   const RecipeCard({super.key, required this.recipe});
@@ -131,9 +132,9 @@ class _ImageArea extends StatelessWidget {
   Widget build(BuildContext context) {
     final base = recipe.imageUrl != null
         ? SizedBox.expand(
-            child: Image.network(
+            child: AuthImage(
               recipe.imageUrl!,
-              fit: BoxFit.cover,
+              cacheWidth: 500,
               errorBuilder: (ctx, err, st) => _Placeholder(recipe: recipe),
             ),
           )
