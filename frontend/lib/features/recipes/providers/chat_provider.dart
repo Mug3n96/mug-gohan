@@ -91,7 +91,10 @@ class ChatNotifier extends _$ChatNotifier {
     } on ApiException catch (e) {
       final errorText = switch (e.statusCode) {
         402 =>
-          'Mein KI-Guthaben ist aufgebraucht. Bitte Ollama-Credits auf ollama.com aufladen.',
+          'Streik in der Küche! 🪧 Der Chefkoch wurde nicht bezahlt und rührt '
+              'keinen Löffel mehr an. Gib der Küchenleitung Bescheid, dass sie '
+              'den Lohn überweist (Ollama-Credits aufladen). Bis dahin gibt\'s '
+              'nur Leitungswasser. 🚰',
         502 || 503 =>
           'Ich bin noch in der Küche, bin gleich da! 🍳 Versuch\'s in einem Moment nochmal.',
         500 =>
