@@ -39,25 +39,20 @@ GoRouter router(Ref ref) {
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/recipes',
         builder: (context, state) => const RecipeListScreen(),
         routes: [
           GoRoute(
             path: ':id',
-            builder: (context, state) => RecipeDetailScreen(
-              id: state.pathParameters['id']!,
-            ),
+            builder: (context, state) =>
+                RecipeDetailScreen(id: state.pathParameters['id']!),
           ),
         ],
       ),
     ],
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(child: Text('Page not found: ${state.uri}')),
-    ),
+    errorBuilder: (context, state) =>
+        Scaffold(body: Center(child: Text('Page not found: ${state.uri}'))),
   );
 }

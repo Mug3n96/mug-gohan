@@ -23,20 +23,20 @@ class IngredientRow extends StatelessWidget {
             width: 6,
             height: 6,
             decoration: BoxDecoration(
-                shape: BoxShape.circle, color: AppTheme.primary),
+              shape: BoxShape.circle,
+              color: AppTheme.primary,
+            ),
           ),
           const SizedBox(width: 12),
           SizedBox(
             width: 80,
             child: Text(
               '$formattedAmount ${ingredient.unit}',
-              style: const TextStyle(
-                  fontWeight: FontWeight.w600, fontSize: 15),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
             ),
           ),
           Expanded(
-            child: Text(ingredient.name,
-                style: const TextStyle(fontSize: 15)),
+            child: Text(ingredient.name, style: const TextStyle(fontSize: 15)),
           ),
         ],
       ),

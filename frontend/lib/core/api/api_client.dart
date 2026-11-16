@@ -39,8 +39,11 @@ class ApiClient {
     return _handle(res);
   }
 
-  Future<dynamic> post(String path, Map<String, dynamic> body,
-      {Duration? timeout}) async {
+  Future<dynamic> post(
+    String path,
+    Map<String, dynamic> body, {
+    Duration? timeout,
+  }) async {
     var request = http.post(
       Uri.parse('$_baseUrl$path'),
       headers: _headers,
@@ -73,11 +76,13 @@ class ApiClient {
     final uri = Uri.parse('$_baseUrl/api/transcribe');
     final request = http.MultipartRequest('POST', uri);
     if (_apiKey != null) request.headers['Authorization'] = 'Bearer $_apiKey';
-    request.files.add(http.MultipartFile.fromBytes(
-      'audio',
-      bytes,
-      filename: 'recording.${mimeType.split('/').last}',
-    ));
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'audio',
+        bytes,
+        filename: 'recording.${mimeType.split('/').last}',
+      ),
+    );
     final streamed = await request.send();
     final res = await http.Response.fromStream(streamed);
     final body = _handle(res) as Map<String, dynamic>;
@@ -120,7 +125,9 @@ ApiClient apiClient(Ref ref) {
   if (kIsWeb) {
     baseUrl = computeWebBaseUrl();
   } else {
-    baseUrl = ref.watch(serverUrlNotifierProvider).valueOrNull ?? 'http://10.0.2.2:3000';
+    baseUrl =
+        ref.watch(serverUrlNotifierProvider).valueOrNull ??
+        'http://10.0.2.2:3000';
   }
   return ApiClient(apiKey, baseUrl);
 }

@@ -50,7 +50,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
 
     try {
       final serverUrl = kIsWeb
@@ -64,9 +67,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await ref.read(authNotifierProvider.notifier).login(key);
       if (mounted) context.go('/recipes');
     } on ApiException catch (e) {
-      setState(() { _error = e.statusCode == 401 ? 'Ungültiger API Key' : e.message; });
+      setState(() {
+        _error = e.statusCode == 401 ? 'Ungültiger API Key' : e.message;
+      });
     } catch (e) {
-      setState(() { _error = 'Verbindung fehlgeschlagen. URL prüfen.' ; });
+      setState(() {
+        _error = 'Verbindung fehlgeschlagen. URL prüfen.';
+      });
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -83,14 +90,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(8),
                 child: IconButton(
-                  icon: Icon(ref.watch(themeModeProvider) == ThemeMode.dark
-                      ? Icons.light_mode
-                      : Icons.dark_mode),
+                  icon: Icon(
+                    ref.watch(themeModeProvider) == ThemeMode.dark
+                        ? Icons.light_mode
+                        : Icons.dark_mode,
+                  ),
                   tooltip: 'Dark Mode',
-                  onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
+                  onPressed: () =>
+                      ref.read(themeModeProvider.notifier).toggle(),
                   style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.inverseSurface,
-                    foregroundColor: Theme.of(context).colorScheme.onInverseSurface,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.inverseSurface,
+                    foregroundColor: Theme.of(
+                      context,
+                    ).colorScheme.onInverseSurface,
                     side: BorderSide(
                       color: Theme.of(context).colorScheme.inverseSurface,
                     ),
@@ -102,77 +116,79 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    ref.watch(appConfigProvider).strings.loginTitle,
-                    style: Theme.of(context)
-                        .textTheme
-                        .displaySmall
-                        ?.copyWith(color: AppTheme.primary),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    ref.watch(appConfigProvider).strings.loginSubtitle,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                padding: const EdgeInsets.all(24),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        ref.watch(appConfigProvider).strings.loginTitle,
+                        style: Theme.of(context).textTheme.displaySmall
+                            ?.copyWith(color: AppTheme.primary),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        ref.watch(appConfigProvider).strings.loginSubtitle,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: AppTheme.textSecondary,
                         ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 48),
-                  if (!kIsWeb) ...[
-                    TextField(
-                      controller: _urlController,
-                      keyboardType: TextInputType.url,
-                      autocorrect: false,
-                      decoration: const InputDecoration(
-                        labelText: 'Server URL',
-                        hintText: 'https://meine-domain.de',
+                        textAlign: TextAlign.center,
                       ),
-                      onSubmitted: (_) => FocusScope.of(context).nextFocus(),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  TextField(
-                    controller: _keyController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'API Key',
-                      hintText: 'Zugangscode eingeben',
-                    ),
-                    onSubmitted: (_) => _login(),
+                      const SizedBox(height: 48),
+                      if (!kIsWeb) ...[
+                        TextField(
+                          controller: _urlController,
+                          keyboardType: TextInputType.url,
+                          autocorrect: false,
+                          decoration: const InputDecoration(
+                            labelText: 'Server URL',
+                            hintText: 'https://meine-domain.de',
+                          ),
+                          onSubmitted: (_) =>
+                              FocusScope.of(context).nextFocus(),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      TextField(
+                        controller: _keyController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: 'API Key',
+                          hintText: 'Zugangscode eingeben',
+                        ),
+                        onSubmitted: (_) => _login(),
+                      ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          _error!,
+                          style: TextStyle(color: AppTheme.error),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      FilledButton(
+                        onPressed: _loading ? null : _login,
+                        child: _loading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text('Login'),
+                      ),
+                    ],
                   ),
-                  if (_error != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      _error!,
-                      style: TextStyle(color: AppTheme.error),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                  const SizedBox(height: 24),
-                  FilledButton(
-                    onPressed: _loading ? null : _login,
-                    child: _loading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Text('Login'),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
         ],
       ),
     );

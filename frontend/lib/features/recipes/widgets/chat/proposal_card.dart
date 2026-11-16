@@ -34,17 +34,22 @@ class ChatProposalCard extends StatelessWidget {
           children: [
             Icon(Icons.check_circle_outline, size: 16, color: Colors.green),
             SizedBox(width: 6),
-            Text('Übernommen',
-                style: TextStyle(color: Colors.green, fontSize: 13)),
+            Text(
+              'Übernommen',
+              style: TextStyle(color: Colors.green, fontSize: 13),
+            ),
           ],
         ),
       );
     }
 
     if (proposalStatus == 'rejected') {
-      return Text('Abgelehnt',
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: AppTheme.textSecondary));
+      return Text(
+        'Abgelehnt',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: AppTheme.textSecondary,
+        ),
+      );
     }
 
     return Container(
@@ -59,8 +64,11 @@ class ChatProposalCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
             child: Row(
               children: [
-                Icon(Icons.auto_fix_high,
-                    size: 15, color: AppTheme.primaryLight),
+                Icon(
+                  Icons.auto_fix_high,
+                  size: 15,
+                  color: AppTheme.primaryLight,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   'Vorschlag',
@@ -116,15 +124,16 @@ class ChatProposalCard extends StatelessWidget {
     final parts = <String>[];
     if (p != null) {
       if (p.title.isNotEmpty) parts.add(p.title);
-      if (p.ingredients.isNotEmpty) parts.add('${p.ingredients.length} Zutaten');
+      if (p.ingredients.isNotEmpty) {
+        parts.add('${p.ingredients.length} Zutaten');
+      }
       if (p.steps.isNotEmpty) parts.add('${p.steps.length} Schritte');
     }
     return Text(
       parts.join(' · '),
-      style: Theme.of(context)
-          .textTheme
-          .bodySmall
-          ?.copyWith(color: AppTheme.textSecondary),
+      style: Theme.of(
+        context,
+      ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
     );
   }
 }

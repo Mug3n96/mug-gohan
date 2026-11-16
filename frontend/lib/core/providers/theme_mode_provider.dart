@@ -19,9 +19,12 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   Future<void> toggle() async {
     state = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     await _storage.write(
-        key: _kKey, value: state == ThemeMode.dark ? 'dark' : 'light');
+      key: _kKey,
+      value: state == ThemeMode.dark ? 'dark' : 'light',
+    );
   }
 }
 
-final themeModeProvider =
-    StateNotifierProvider<ThemeModeNotifier, ThemeMode>((_) => ThemeModeNotifier());
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>(
+  (_) => ThemeModeNotifier(),
+);

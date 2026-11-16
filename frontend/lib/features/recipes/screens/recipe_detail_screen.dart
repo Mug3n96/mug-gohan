@@ -226,6 +226,7 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
 
     return PopScope(
       onPopInvokedWithResult: (didPop, _) {
+        // Refresh the list once on leaving, not after every autosave.
         if (didPop) ref.invalidate(recipeListNotifierProvider);
       },
       child: Scaffold(
@@ -277,105 +278,101 @@ class _RecipeViewState extends ConsumerState<_RecipeView> {
     required bool chatAsOverlay,
   }) {
     return Stack(
-          children: [
-            CustomScrollView(
-              slivers: [
-                _buildAppBar(context),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                  sliver: _editMode
-                      ? RecipeEditContent(
-                          recipe: widget.recipe,
-                          descCtrl: _descCtrl,
-                          prepTimeCtrl: _prepTimeCtrl,
-                          cookTimeCtrl: _cookTimeCtrl,
-                          cuisineCtrl: _cuisineCtrl,
-                          categoryCtrl: _categoryCtrl,
-                          notesCtrl: _notesCtrl,
-                          difficulty: _difficulty,
-                          editPortions: _editPortions,
-                          editTags: _editTags,
-                          editIngredients: _editIngredients,
-                          editSteps: _editSteps,
-                          onDifficultyChanged: (v) {
-                            setState(() => _difficulty = v);
-                            _scheduleAutoSave();
-                          },
-                          onPortionsChanged: (v) {
-                            setState(() => _editPortions = v);
-                            _scheduleAutoSave();
-                          },
-                          onTagAdded: (tag) {
-                            setState(() => _editTags.add(tag));
-                            _scheduleAutoSave();
-                          },
-                          onTagRemoved: (tag) {
-                            setState(() => _editTags.remove(tag));
-                            _scheduleAutoSave();
-                          },
-                          onIngredientChanged: (i, updated) {
-                            setState(() => _editIngredients[i] = updated);
-                            _scheduleAutoSave();
-                          },
-                          onIngredientAdded: () {
-                            setState(
-                              () => _editIngredients.add(
-                                const Ingredient(
-                                  name: '',
-                                  amount: 0,
-                                  unit: 'g',
-                                ),
-                              ),
-                            );
-                          },
-                          onIngredientDeleted: (i) {
-                            setState(() => _editIngredients.removeAt(i));
-                            _scheduleAutoSave();
-                          },
-                          onStepChanged: (i, updated) {
-                            setState(() => _editSteps[i] = updated);
-                            _scheduleAutoSave();
-                          },
-                          onStepAdded: () {
-                            setState(
-                              () => _editSteps.add(
-                                RecipeStep(
-                                  order: _editSteps.length + 1,
-                                  description: '',
-                                ),
-                              ),
-                            );
-                          },
-                          onStepDeleted: (i) {
-                            setState(() => _editSteps.removeAt(i));
-                            _scheduleAutoSave();
-                          },
-                          onFieldChanged: _scheduleAutoSave,
-                          onPickImage: _pickImage,
-                        )
-                      : RecipeViewContent(recipe: widget.recipe),
-                ),
-              ],
+      children: [
+        CustomScrollView(
+          slivers: [
+            _buildAppBar(context),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+              sliver: _editMode
+                  ? RecipeEditContent(
+                      recipe: widget.recipe,
+                      descCtrl: _descCtrl,
+                      prepTimeCtrl: _prepTimeCtrl,
+                      cookTimeCtrl: _cookTimeCtrl,
+                      cuisineCtrl: _cuisineCtrl,
+                      categoryCtrl: _categoryCtrl,
+                      notesCtrl: _notesCtrl,
+                      difficulty: _difficulty,
+                      editPortions: _editPortions,
+                      editTags: _editTags,
+                      editIngredients: _editIngredients,
+                      editSteps: _editSteps,
+                      onDifficultyChanged: (v) {
+                        setState(() => _difficulty = v);
+                        _scheduleAutoSave();
+                      },
+                      onPortionsChanged: (v) {
+                        setState(() => _editPortions = v);
+                        _scheduleAutoSave();
+                      },
+                      onTagAdded: (tag) {
+                        setState(() => _editTags.add(tag));
+                        _scheduleAutoSave();
+                      },
+                      onTagRemoved: (tag) {
+                        setState(() => _editTags.remove(tag));
+                        _scheduleAutoSave();
+                      },
+                      onIngredientChanged: (i, updated) {
+                        setState(() => _editIngredients[i] = updated);
+                        _scheduleAutoSave();
+                      },
+                      onIngredientAdded: () {
+                        setState(
+                          () => _editIngredients.add(
+                            const Ingredient(name: '', amount: 0, unit: 'g'),
+                          ),
+                        );
+                      },
+                      onIngredientDeleted: (i) {
+                        setState(() => _editIngredients.removeAt(i));
+                        _scheduleAutoSave();
+                      },
+                      onStepChanged: (i, updated) {
+                        setState(() => _editSteps[i] = updated);
+                        _scheduleAutoSave();
+                      },
+                      onStepAdded: () {
+                        setState(
+                          () => _editSteps.add(
+                            RecipeStep(
+                              order: _editSteps.length + 1,
+                              description: '',
+                            ),
+                          ),
+                        );
+                      },
+                      onStepDeleted: (i) {
+                        setState(() => _editSteps.removeAt(i));
+                        _scheduleAutoSave();
+                      },
+                      onFieldChanged: _scheduleAutoSave,
+                      onPickImage: _pickImage,
+                    )
+                  : RecipeViewContent(recipe: widget.recipe),
             ),
-            if (!_editMode)
-              Positioned(
-                right: 16,
-                bottom: 16,
-                child: FloatingActionButton(
-                  onPressed: _enterEditMode,
-                  tooltip: 'Bearbeiten',
-                  child: const Icon(Icons.edit_outlined),
-                ),
-              ),
-            if (_editMode && !keyboardOpen) _buildBottomBar(context),
-            if (chatAsOverlay)
-              RecipeChatPanel(
-                open: _chatOpen,
-                recipeId: widget.id,
-                onClose: () => setState(() => _chatOpen = false),
-              ),
           ],
-        );
+        ),
+        if (!_editMode)
+          Positioned(
+            right: 16,
+            bottom: 16,
+            child: FloatingActionButton(
+              onPressed: _enterEditMode,
+              tooltip: 'Bearbeiten',
+              child: const Icon(Icons.edit_outlined),
+            ),
+          ),
+        if (_editMode && !keyboardOpen) _buildBottomBar(context),
+        if (chatAsOverlay)
+          RecipeChatPanel(
+            open: _chatOpen,
+            recipeId: widget.id,
+            onClose: () => setState(() => _chatOpen = false),
+          ),
+      ],
+    );
   }
 
   Widget _buildAppBar(BuildContext context) {

@@ -19,10 +19,8 @@ class RecipeChatPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final screen = MediaQuery.of(context).size;
-    final hasMessages = ref
-            .watch(chatNotifierProvider(recipeId))
-            .valueOrNull
-            ?.isNotEmpty ??
+    final hasMessages =
+        ref.watch(chatNotifierProvider(recipeId)).valueOrNull?.isNotEmpty ??
         false;
     final panelHeight = hasMessages
         ? (screen.height * 0.5).clamp(200.0, 480.0)

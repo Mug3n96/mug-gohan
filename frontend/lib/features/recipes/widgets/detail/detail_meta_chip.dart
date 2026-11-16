@@ -28,11 +28,14 @@ class DetailMetaChip extends StatelessWidget {
         children: [
           Icon(item.icon, size: 14, color: color),
           const SizedBox(width: 4),
-          Text(item.label,
-              style: TextStyle(
-                  fontSize: 13,
-                  color: color,
-                  fontWeight: FontWeight.w500)),
+          Text(
+            item.label,
+            style: TextStyle(
+              fontSize: 13,
+              color: color,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );

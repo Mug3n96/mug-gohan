@@ -39,7 +39,8 @@ class _RecipeViewContentState extends ConsumerState<RecipeViewContent> {
     return SliverToBoxAdapter(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final twoCol = constraints.maxWidth >= 680 &&
+          final twoCol =
+              constraints.maxWidth >= 680 &&
               recipe.ingredients.isNotEmpty &&
               recipe.steps.isNotEmpty;
 
@@ -53,19 +54,21 @@ class _RecipeViewContentState extends ConsumerState<RecipeViewContent> {
           ];
 
           if (twoCol) {
-            children.add(IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 280,
-                    child: _buildIngredients(context, recipe),
-                  ),
-                  const SizedBox(width: 32),
-                  Expanded(child: _buildSteps(context, recipe)),
-                ],
+            children.add(
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 280,
+                      child: _buildIngredients(context, recipe),
+                    ),
+                    const SizedBox(width: 32),
+                    Expanded(child: _buildSteps(context, recipe)),
+                  ],
+                ),
               ),
-            ));
+            );
             children.add(const SizedBox(height: 24));
           } else {
             if (recipe.ingredients.isNotEmpty) {
@@ -108,25 +111,31 @@ class _RecipeViewContentState extends ConsumerState<RecipeViewContent> {
         ),
       if (recipe.prepTime.isNotEmpty)
         DetailMetaItem(
-            icon: Icons.av_timer_outlined,
-            label: 'Vorbereitung: ${recipe.prepTime}'),
+          icon: Icons.av_timer_outlined,
+          label: 'Vorbereitung: ${recipe.prepTime}',
+        ),
       if (recipe.cookTime.isNotEmpty)
         DetailMetaItem(
-            icon: Icons.local_fire_department_outlined,
-            label: 'Kochen: ${recipe.cookTime}'),
+          icon: Icons.local_fire_department_outlined,
+          label: 'Kochen: ${recipe.cookTime}',
+        ),
       if (recipe.cuisine.isNotEmpty)
         DetailMetaItem(icon: Icons.public_outlined, label: recipe.cuisine),
       if (recipe.category.isNotEmpty)
         DetailMetaItem(
-            icon: Icons.restaurant_menu_outlined, label: recipe.category),
+          icon: Icons.restaurant_menu_outlined,
+          label: recipe.category,
+        ),
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (recipe.description.isNotEmpty) ...[
-          Text(recipe.description,
-              style: Theme.of(context).textTheme.bodyLarge),
+          Text(
+            recipe.description,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
           const SizedBox(height: 12),
         ],
         if (chips.isNotEmpty)
@@ -140,17 +149,19 @@ class _RecipeViewContentState extends ConsumerState<RecipeViewContent> {
   }
 
   Widget _buildTags(Recipe recipe) => Wrap(
-        spacing: 6,
-        runSpacing: 6,
-        children: recipe.tags
-            .map((t) => Chip(
-                  label: Text(t),
-                  labelStyle: const TextStyle(fontSize: 12),
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  visualDensity: VisualDensity.compact,
-                ))
-            .toList(),
-      );
+    spacing: 6,
+    runSpacing: 6,
+    children: recipe.tags
+        .map(
+          (t) => Chip(
+            label: Text(t),
+            labelStyle: const TextStyle(fontSize: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            visualDensity: VisualDensity.compact,
+          ),
+        )
+        .toList(),
+  );
 
   Widget _buildIngredients(BuildContext context, Recipe recipe) {
     final grouped = <String, List<Ingredient>>{};
@@ -175,11 +186,12 @@ class _RecipeViewContentState extends ConsumerState<RecipeViewContent> {
       children: [
         Row(
           children: [
-            Text('Zutaten',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w600)),
+            Text(
+              'Zutaten',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+            ),
             const Spacer(),
             PortionStepper(
               portions: _portions,
@@ -189,21 +201,34 @@ class _RecipeViewContentState extends ConsumerState<RecipeViewContent> {
         ),
         const SizedBox(height: 12),
         if (hasGroups)
-          ...grouped.entries.expand((e) => [
-                if (e.key.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(e.key,
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: AppTheme.primary,
-                          fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 4),
-                ],
-                ...e.value.map((ing) => IngredientRow(
-                    ingredient: ing, formattedAmount: fmt(ing.amount))),
-              ])
+          ...grouped.entries.expand(
+            (e) => [
+              if (e.key.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  e.key,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: AppTheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+              ],
+              ...e.value.map(
+                (ing) => IngredientRow(
+                  ingredient: ing,
+                  formattedAmount: fmt(ing.amount),
+                ),
+              ),
+            ],
+          )
         else
-          ...recipe.ingredients.map((ing) =>
-              IngredientRow(ingredient: ing, formattedAmount: fmt(ing.amount))),
+          ...recipe.ingredients.map(
+            (ing) => IngredientRow(
+              ingredient: ing,
+              formattedAmount: fmt(ing.amount),
+            ),
+          ),
       ],
     );
   }
@@ -214,40 +239,37 @@ class _RecipeViewContentState extends ConsumerState<RecipeViewContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Zubereitung',
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge),
+        Text('Zubereitung', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 12),
-        ...sorted
-            .asMap()
-            .entries
-            .map((e) => StepCard(step: e.value, index: e.key)),
+        ...sorted.asMap().entries.map(
+          (e) => StepCard(step: e.value, index: e.key),
+        ),
       ],
     );
   }
 
   Widget _buildNotes(BuildContext context, Recipe recipe) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Notizen',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppTheme.primary.withAlpha(15),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.primary.withAlpha(40)),
-            ),
-            child: Text(recipe.notes),
-          ),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        'Notizen',
+        style: Theme.of(
+          context,
+        ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+      ),
+      const SizedBox(height: 8),
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.primary.withAlpha(15),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.primary.withAlpha(40)),
+        ),
+        child: Text(recipe.notes),
+      ),
+    ],
+  );
 
   Widget _buildEmptyHint(BuildContext context) {
     final strings = ref.watch(appConfigProvider).strings;
@@ -256,14 +278,17 @@ class _RecipeViewContentState extends ConsumerState<RecipeViewContent> {
         padding: const EdgeInsets.symmetric(vertical: 48),
         child: Column(
           children: [
-            Icon(Icons.chat_bubble_outline,
-                size: 48, color: AppTheme.primary.withAlpha(120)),
+            Icon(
+              Icons.chat_bubble_outline,
+              size: 48,
+              color: AppTheme.primary.withAlpha(120),
+            ),
             const SizedBox(height: 12),
             Text(
               strings.recipeEmptyHint,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],

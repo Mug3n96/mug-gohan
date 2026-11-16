@@ -49,8 +49,10 @@ class InlineTextField extends StatelessWidget {
               filled: true,
               fillColor: Colors.transparent,
               isDense: true,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 6,
+                vertical: 6,
+              ),
             ),
           ),
         ),
@@ -58,7 +60,8 @@ class InlineTextField extends StatelessWidget {
           child: IgnorePointer(
             child: CustomPaint(
               painter: DashedBorderPainter(
-                  color: AppTheme.primary.withAlpha(55)),
+                color: AppTheme.primary.withAlpha(55),
+              ),
             ),
           ),
         ),

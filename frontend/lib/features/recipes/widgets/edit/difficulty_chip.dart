@@ -34,11 +34,14 @@ class DifficultyChip extends StatelessWidget {
           children: [
             Icon(Icons.signal_cellular_alt_outlined, size: 14, color: c),
             const SizedBox(width: 4),
-            Text(value,
-                style: TextStyle(
-                    fontSize: 13,
-                    color: c,
-                    fontWeight: FontWeight.w500)),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 13,
+                color: c,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             const SizedBox(width: 4),
             Icon(Icons.unfold_more, size: 13, color: c.withAlpha(180)),
           ],

@@ -9,22 +9,30 @@ import 'package:image_picker/image_picker.dart';
 /// Detects MIME type from magic bytes.
 String detectMime(Uint8List bytes) {
   if (bytes.length >= 4 &&
-      bytes[0] == 0x89 && bytes[1] == 0x50 &&
-      bytes[2] == 0x4E && bytes[3] == 0x47) {
+      bytes[0] == 0x89 &&
+      bytes[1] == 0x50 &&
+      bytes[2] == 0x4E &&
+      bytes[3] == 0x47) {
     return 'image/png';
   }
   if (bytes.length >= 3 &&
-      bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF) {
+      bytes[0] == 0xFF &&
+      bytes[1] == 0xD8 &&
+      bytes[2] == 0xFF) {
     return 'image/jpeg';
   }
   if (bytes.length >= 4 &&
-      bytes[0] == 0x47 && bytes[1] == 0x49 &&
-      bytes[2] == 0x46 && bytes[3] == 0x38) {
+      bytes[0] == 0x47 &&
+      bytes[1] == 0x49 &&
+      bytes[2] == 0x46 &&
+      bytes[3] == 0x38) {
     return 'image/gif';
   }
   if (bytes.length >= 4 &&
-      bytes[0] == 0x52 && bytes[1] == 0x49 &&
-      bytes[2] == 0x46 && bytes[3] == 0x46) {
+      bytes[0] == 0x52 &&
+      bytes[1] == 0x49 &&
+      bytes[2] == 0x46 &&
+      bytes[3] == 0x46) {
     return 'image/webp';
   }
   return 'image/jpeg';
@@ -85,7 +93,10 @@ Future<String?> pickRecipeImage(BuildContext context) async {
     );
     if (source == null) return null;
     final file = await ImagePicker().pickImage(
-        source: source, imageQuality: 80, maxWidth: 1200);
+      source: source,
+      imageQuality: 80,
+      maxWidth: 1200,
+    );
     if (file == null) return null;
     bytes = await file.readAsBytes();
     mime = file.mimeType ?? 'image/jpeg';

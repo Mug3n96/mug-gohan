@@ -5,11 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class ImagePlaceholder extends StatelessWidget {
-  const ImagePlaceholder({
-    super.key,
-    this.iconSize = 48,
-    this.title,
-  });
+  const ImagePlaceholder({super.key, this.iconSize = 48, this.title});
 
   final double iconSize;
   final String? title;
@@ -63,10 +59,7 @@ class ImagePlaceholder extends StatelessWidget {
 }
 
 class _DiagonalStripesPainter extends CustomPainter {
-  _DiagonalStripesPainter({
-    required this.baseColor,
-    required this.stripeColor,
-  });
+  _DiagonalStripesPainter({required this.baseColor, required this.stripeColor});
 
   final Color baseColor;
   final Color stripeColor;

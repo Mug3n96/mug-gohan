@@ -35,12 +35,12 @@ class _InlineIngredientTileState extends State<InlineIngredientTile> {
     final i = widget.ingredient;
     _name = TextEditingController(text: i.name);
     _amount = TextEditingController(
-        text: i.amount == 0 ? '' : i.amount.toString());
+      text: i.amount == 0 ? '' : i.amount.toString(),
+    );
     _group = TextEditingController(text: i.group ?? '');
     _unit = i.unit.isEmpty ? 'g' : i.unit;
     _groupFocus = FocusNode()
-      ..addListener(
-          () => setState(() => _groupFocused = _groupFocus.hasFocus));
+      ..addListener(() => setState(() => _groupFocused = _groupFocus.hasFocus));
   }
 
   @override
@@ -71,13 +71,15 @@ class _InlineIngredientTileState extends State<InlineIngredientTile> {
     super.dispose();
   }
 
-  void _notify() => widget.onChanged(Ingredient(
-        name: _name.text.trim(),
-        // Accept German comma decimals ("0,2") as well as dot ("0.2").
-        amount: num.tryParse(_amount.text.replaceAll(',', '.')) ?? 0,
-        unit: _unit,
-        group: _group.text.trim().isEmpty ? null : _group.text.trim(),
-      ));
+  void _notify() => widget.onChanged(
+    Ingredient(
+      name: _name.text.trim(),
+      // Accept German comma decimals ("0,2") as well as dot ("0.2").
+      amount: num.tryParse(_amount.text.replaceAll(',', '.')) ?? 0,
+      unit: _unit,
+      group: _group.text.trim().isEmpty ? null : _group.text.trim(),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +95,9 @@ class _InlineIngredientTileState extends State<InlineIngredientTile> {
                 width: 6,
                 height: 6,
                 decoration: BoxDecoration(
-                    shape: BoxShape.circle, color: AppTheme.primary),
+                  shape: BoxShape.circle,
+                  color: AppTheme.primary,
+                ),
               ),
               const SizedBox(width: 12),
               SizedBox(
@@ -102,9 +106,12 @@ class _InlineIngredientTileState extends State<InlineIngredientTile> {
                   controller: _amount,
                   onChanged: _notify,
                   keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true),
+                    decimal: true,
+                  ),
                   style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 15),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
                   hint: '0',
                 ),
               ),
@@ -114,10 +121,11 @@ class _InlineIngredientTileState extends State<InlineIngredientTile> {
                   value: _unit,
                   isDense: true,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 14),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                   items: _units
-                      .map((u) =>
-                          DropdownMenuItem(value: u, child: Text(u)))
+                      .map((u) => DropdownMenuItem(value: u, child: Text(u)))
                       .toList(),
                   onChanged: (v) {
                     setState(() => _unit = v!);
@@ -152,8 +160,7 @@ class _InlineIngredientTileState extends State<InlineIngredientTile> {
                   controller: _group,
                   focusNode: _groupFocus,
                   onChanged: _notify,
-                  style: TextStyle(
-                      fontSize: 12, color: AppTheme.textSecondary),
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                   hint: 'Gruppe (z.B. Teig, Sauce)',
                 ),
               ),
@@ -162,16 +169,18 @@ class _InlineIngredientTileState extends State<InlineIngredientTile> {
             GestureDetector(
               onTap: () {
                 setState(() => _groupFocused = true);
-                WidgetsBinding.instance
-                    .addPostFrameCallback((_) => _groupFocus.requestFocus());
+                WidgetsBinding.instance.addPostFrameCallback(
+                  (_) => _groupFocus.requestFocus(),
+                );
               },
               child: Padding(
                 padding: const EdgeInsets.only(left: 30, top: 3, bottom: 2),
                 child: Text(
                   '+ Gruppe',
                   style: TextStyle(
-                      fontSize: 11,
-                      color: AppTheme.textSecondary.withAlpha(100)),
+                    fontSize: 11,
+                    color: AppTheme.textSecondary.withAlpha(100),
+                  ),
                 ),
               ),
             ),

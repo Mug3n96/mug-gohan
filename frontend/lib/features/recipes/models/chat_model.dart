@@ -8,8 +8,8 @@ class ChatMessage {
   final Recipe? proposal;
   final String? proposalStatus; // 'accepted' | 'rejected' | null
   final String createdAt;
-  final String? imageData;   // raw base64, no prefix
-  final String? imageMime;   // 'image/jpeg' | 'image/png' | 'application/pdf'
+  final String? imageData; // raw base64, no prefix
+  final String? imageMime; // 'image/jpeg' | 'image/png' | 'application/pdf'
 
   const ChatMessage({
     required this.id,
@@ -24,30 +24,30 @@ class ChatMessage {
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> j) => ChatMessage(
-        id: j['id'] as String,
-        recipeId: j['recipe_id'] as String,
-        role: j['role'] as String,
-        content: j['content'] as String,
-        proposal: j['proposal'] != null
-            ? Recipe.fromJson(j['proposal'] as Map<String, dynamic>)
-            : null,
-        proposalStatus: j['proposal_status'] as String?,
-        createdAt: j['created_at'] as String,
-        imageData: j['image_data'] as String?,
-        imageMime: j['image_mime'] as String?,
-      );
+    id: j['id'] as String,
+    recipeId: j['recipe_id'] as String,
+    role: j['role'] as String,
+    content: j['content'] as String,
+    proposal: j['proposal'] != null
+        ? Recipe.fromJson(j['proposal'] as Map<String, dynamic>)
+        : null,
+    proposalStatus: j['proposal_status'] as String?,
+    createdAt: j['created_at'] as String,
+    imageData: j['image_data'] as String?,
+    imageMime: j['image_mime'] as String?,
+  );
 
   ChatMessage copyWith({String? proposalStatus}) => ChatMessage(
-        id: id,
-        recipeId: recipeId,
-        role: role,
-        content: content,
-        proposal: proposal,
-        proposalStatus: proposalStatus ?? this.proposalStatus,
-        createdAt: createdAt,
-        imageData: imageData,
-        imageMime: imageMime,
-      );
+    id: id,
+    recipeId: recipeId,
+    role: role,
+    content: content,
+    proposal: proposal,
+    proposalStatus: proposalStatus ?? this.proposalStatus,
+    createdAt: createdAt,
+    imageData: imageData,
+    imageMime: imageMime,
+  );
 
   bool get proposalAccepted => proposalStatus == 'accepted';
   bool get proposalRejected => proposalStatus == 'rejected';

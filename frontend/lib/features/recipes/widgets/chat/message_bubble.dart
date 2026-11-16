@@ -31,8 +31,9 @@ class ChatMessageBubble extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
-        crossAxisAlignment:
-            isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: isUser
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           Container(
             constraints: BoxConstraints(
@@ -59,18 +60,23 @@ class ChatMessageBubble extends ConsumerWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.picture_as_pdf,
+                        Icon(
+                          Icons.picture_as_pdf,
+                          color: isUser
+                              ? Colors.white70
+                              : AppTheme.primaryLight,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'PDF',
+                          style: TextStyle(
                             color: isUser
                                 ? Colors.white70
-                                : AppTheme.primaryLight,
-                            size: 28),
-                        const SizedBox(width: 6),
-                        Text('PDF',
-                            style: TextStyle(
-                                color: isUser
-                                    ? Colors.white70
-                                    : AppTheme.textSecondary,
-                                fontSize: 12)),
+                                : AppTheme.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     )
                   else

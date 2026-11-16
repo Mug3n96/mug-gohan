@@ -97,9 +97,11 @@ class RecipeEditContent extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               if (imageUrl != null)
-                Image.network(imageUrl, fit: BoxFit.cover,
-                    errorBuilder: (ctx, err, st) =>
-                        const ImagePlaceholder())
+                Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (ctx, err, st) => const ImagePlaceholder(),
+                )
               else
                 const ImagePlaceholder(),
               Container(
@@ -148,10 +150,7 @@ class RecipeEditContent extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            DifficultyChip(
-              value: difficulty,
-              onChanged: onDifficultyChanged,
-            ),
+            DifficultyChip(value: difficulty, onChanged: onDifficultyChanged),
             EditableChipField(
               icon: Icons.av_timer_outlined,
               controller: prepTimeCtrl,
@@ -197,21 +196,20 @@ class RecipeEditContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Tags',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium),
+        Text('Tags', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,
           runSpacing: 6,
           children: [
-            ...editTags.map((tag) => Chip(
-                  label: Text(tag),
-                  labelStyle: const TextStyle(fontSize: 12),
-                  visualDensity: VisualDensity.compact,
-                  onDeleted: () => onTagRemoved(tag),
-                )),
+            ...editTags.map(
+              (tag) => Chip(
+                label: Text(tag),
+                labelStyle: const TextStyle(fontSize: 12),
+                visualDensity: VisualDensity.compact,
+                onDeleted: () => onTagRemoved(tag),
+              ),
+            ),
             InlineTagInput(onAdd: onTagAdded),
           ],
         ),
@@ -223,17 +221,16 @@ class RecipeEditContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Zutaten',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium),
+        Text('Zutaten', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        ...editIngredients.asMap().entries.map((e) => InlineIngredientTile(
-              key: ValueKey('ing-${e.key}'),
-              ingredient: e.value,
-              onChanged: (updated) => onIngredientChanged(e.key, updated),
-              onDelete: () => onIngredientDeleted(e.key),
-            )),
+        ...editIngredients.asMap().entries.map(
+          (e) => InlineIngredientTile(
+            key: ValueKey('ing-${e.key}'),
+            ingredient: e.value,
+            onChanged: (updated) => onIngredientChanged(e.key, updated),
+            onDelete: () => onIngredientDeleted(e.key),
+          ),
+        ),
         TextButton.icon(
           onPressed: onIngredientAdded,
           icon: const Icon(Icons.add, size: 18),
@@ -247,18 +244,17 @@ class RecipeEditContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Zubereitung',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium),
+        Text('Zubereitung', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        ...editSteps.asMap().entries.map((e) => InlineStepTile(
-              key: ValueKey('step-${e.key}'),
-              step: e.value,
-              index: e.key,
-              onChanged: (updated) => onStepChanged(e.key, updated),
-              onDelete: () => onStepDeleted(e.key),
-            )),
+        ...editSteps.asMap().entries.map(
+          (e) => InlineStepTile(
+            key: ValueKey('step-${e.key}'),
+            step: e.value,
+            index: e.key,
+            onChanged: (updated) => onStepChanged(e.key, updated),
+            onDelete: () => onStepDeleted(e.key),
+          ),
+        ),
         TextButton.icon(
           onPressed: onStepAdded,
           icon: const Icon(Icons.add, size: 18),
@@ -272,8 +268,7 @@ class RecipeEditContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Notizen',
-            style: Theme.of(context).textTheme.titleLarge),
+        Text('Notizen', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
         Stack(
           children: [

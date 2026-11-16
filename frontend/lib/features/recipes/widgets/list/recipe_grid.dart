@@ -17,10 +17,9 @@ class RecipeGridSliver extends StatelessWidget {
         child: Center(
           child: Text(
             'Keine Rezepte für diese Tags',
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: AppTheme.textSecondary),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
           ),
         ),
       );
@@ -32,15 +31,15 @@ class RecipeGridSliver extends StatelessWidget {
         final crossAxisCount = w > 1100
             ? 4
             : w > 800
-                ? 3
-                : w > 520
-                    ? 2
-                    : 1;
+            ? 3
+            : w > 520
+            ? 2
+            : 1;
         final aspectRatio = crossAxisCount == 1
             ? 1.0
             : crossAxisCount == 2
-                ? 0.95
-                : 0.86;
+            ? 0.95
+            : 0.86;
         return SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
           sliver: SliverGrid(
@@ -92,11 +91,7 @@ class TagFilterBar extends StatelessWidget {
             final tag = tags[i];
             final active = selected.contains(tag);
             return FilterChip(
-              label: Text(
-                tag,
-                softWrap: false,
-                overflow: TextOverflow.visible,
-              ),
+              label: Text(tag, softWrap: false, overflow: TextOverflow.visible),
               selected: active,
               onSelected: (_) => onToggle(tag),
               visualDensity: VisualDensity.compact,
@@ -115,11 +110,11 @@ class TagFilterBar extends StatelessWidget {
                 fontWeight: active ? FontWeight.w600 : FontWeight.w500,
               ),
               labelPadding: const EdgeInsets.fromLTRB(8, 0, 10, 0),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               side: BorderSide(
-                color:
-                    active ? AppTheme.primary : AppTheme.primary.withAlpha(50),
+                color: active
+                    ? AppTheme.primary
+                    : AppTheme.primary.withAlpha(50),
                 width: 1,
               ),
               shape: const StadiumBorder(),

@@ -48,8 +48,7 @@ class _InlineTagInputState extends State<InlineTagInput> {
             borderRadius: BorderRadius.circular(100),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 120),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               color: _active
                   ? AppTheme.textSecondary.withAlpha(35)
                   : AppTheme.textSecondary.withAlpha(15),

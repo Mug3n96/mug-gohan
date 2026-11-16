@@ -142,8 +142,9 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
     setState(() => _sending = true);
     try {
       final mimeType = kIsWeb ? 'audio/webm' : 'audio/ogg';
-      final transcript =
-          await ref.read(apiClientProvider).transcribeAudio(bytes, mimeType);
+      final transcript = await ref
+          .read(apiClientProvider)
+          .transcribeAudio(bytes, mimeType);
       if (transcript.isNotEmpty && mounted) {
         await ref
             .read(chatNotifierProvider(widget.recipeId).notifier)
@@ -191,9 +192,9 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
       _scrollToBottom();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Fehler: $e')));
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -229,7 +230,8 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: widget.borderRadius ??
+        borderRadius:
+            widget.borderRadius ??
             const BorderRadius.only(
               topLeft: Radius.circular(16),
               bottomLeft: Radius.circular(16),
@@ -252,15 +254,18 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
                 AssistantAvatar(
                   size: 28,
                   icon: true,
-                  colorFilter: ColorFilter.mode(AppTheme.primaryLight, BlendMode.srcIn),
+                  colorFilter: ColorFilter.mode(
+                    AppTheme.primaryLight,
+                    BlendMode.srcIn,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     ref.watch(appConfigProvider).assistant.name,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -307,8 +312,7 @@ class _ChatSheetState extends ConsumerState<ChatSheet> {
               _pendingMime = null;
               _pendingFileName = null;
             }),
-            voiceEnabled:
-                ref.watch(appConfigProvider).features.voiceEnabled,
+            voiceEnabled: ref.watch(appConfigProvider).features.voiceEnabled,
             isRecording: _isRecording,
             onMicTap: _toggleRecording,
           ),

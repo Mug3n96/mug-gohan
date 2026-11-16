@@ -23,8 +23,10 @@ class PortionStepper extends StatelessWidget {
           visualDensity: VisualDensity.compact,
           color: AppTheme.primary,
         ),
-        Text('$portions Portion${portions != 1 ? 'en' : ''}',
-            style: const TextStyle(fontWeight: FontWeight.w600)),
+        Text(
+          '$portions Portion${portions != 1 ? 'en' : ''}',
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
         IconButton(
           icon: const Icon(Icons.add_circle_outline),
           onPressed: () => onChanged(portions + 1),

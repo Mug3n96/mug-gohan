@@ -18,18 +18,22 @@ class ListEmptyState extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.menu_book_outlined,
-                size: 72, color: AppTheme.primary.withAlpha(120)),
+            Icon(
+              Icons.menu_book_outlined,
+              size: 72,
+              color: AppTheme.primary.withAlpha(120),
+            ),
             const SizedBox(height: 16),
-            Text(strings.listEmptyTitle,
-                style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              strings.listEmptyTitle,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 8),
             Text(
               strings.listEmptySubtitle,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: AppTheme.textSecondary),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -39,7 +43,10 @@ class ListEmptyState extends ConsumerWidget {
               label: Text(strings.listCreateButton),
               style: FilledButton.styleFrom(
                 minimumSize: Size.zero,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 20,
+                ),
                 shape: const StadiumBorder(),
               ),
             ),

@@ -25,7 +25,11 @@ class ChatNotifier extends _$ChatNotifier {
         .toList();
   }
 
-  Future<void> sendMessage(String message, {String? imageData, String? imageMime}) async {
+  Future<void> sendMessage(
+    String message, {
+    String? imageData,
+    String? imageMime,
+  }) async {
     final current = state.valueOrNull ?? [];
 
     // Optimistic: show user message immediately
@@ -46,11 +50,15 @@ class ChatNotifier extends _$ChatNotifier {
     if (imageMime != null) body['imageMime'] = imageMime;
 
     try {
-      final data = await client.post(
-        '/api/recipes/$recipeId/chat',
-        body,
-        timeout: const Duration(seconds: 180), // LLM cold-start can be slow
-      ) as Map<String, dynamic>;
+      final data =
+          await client.post(
+                '/api/recipes/$recipeId/chat',
+                body,
+                timeout: const Duration(
+                  seconds: 180,
+                ), // LLM cold-start can be slow
+              )
+              as Map<String, dynamic>;
 
       Recipe? proposal;
       if (data['proposal'] is Map<String, dynamic>) {
@@ -61,10 +69,13 @@ class ChatNotifier extends _$ChatNotifier {
 
       // If new proposal arrived, mark all previous unresolved proposals as rejected
       final updated = proposal != null
-          ? current.map((m) =>
-              m.proposal != null && m.proposalStatus == null
-                  ? m.copyWith(proposalStatus: 'rejected')
-                  : m).toList()
+          ? current
+                .map(
+                  (m) => m.proposal != null && m.proposalStatus == null
+                      ? m.copyWith(proposalStatus: 'rejected')
+                      : m,
+                )
+                .toList()
           : List<ChatMessage>.from(current);
 
       final assistantMsg = ChatMessage(
@@ -79,14 +90,22 @@ class ChatNotifier extends _$ChatNotifier {
       state = AsyncData([...updated, optimisticUser, assistantMsg]);
     } on ApiException catch (e) {
       final errorText = switch (e.statusCode) {
-        502 || 503 => 'Ich bin noch in der Küche, bin gleich da! 🍳 Versuch\'s in einem Moment nochmal.',
-        500 => 'Hoppla, mir ist etwas aus den Pfoten gefallen. Versuch\'s nochmal!',
-        _ => 'Da ist etwas schiefgelaufen (${e.statusCode}). Versuch\'s nochmal!',
+        402 =>
+          'Mein KI-Guthaben ist aufgebraucht. Bitte Ollama-Credits auf ollama.com aufladen.',
+        502 || 503 =>
+          'Ich bin noch in der Küche, bin gleich da! 🍳 Versuch\'s in einem Moment nochmal.',
+        500 =>
+          'Hoppla, mir ist etwas aus den Pfoten gefallen. Versuch\'s nochmal!',
+        _ =>
+          'Da ist etwas schiefgelaufen (${e.statusCode}). Versuch\'s nochmal!',
       };
       await _recoverOrShowError(current, optimisticUser, errorText);
     } catch (_) {
-      await _recoverOrShowError(current, optimisticUser,
-          'Keine Verbindung zum Server. Netz prüfen und nochmal versuchen!');
+      await _recoverOrShowError(
+        current,
+        optimisticUser,
+        'Keine Verbindung zum Server. Netz prüfen und nochmal versuchen!',
+      );
     }
   }
 
@@ -123,16 +142,16 @@ class ChatNotifier extends _$ChatNotifier {
         .read(recipeDetailProvider(recipeId).notifier)
         .save(proposal.toJson());
     final client = ref.read(apiClientProvider);
-    await client.patch(
-      '/api/recipes/$recipeId/chat/$messageId',
-      {'proposal_status': 'accepted'},
-    );
+    await client.patch('/api/recipes/$recipeId/chat/$messageId', {
+      'proposal_status': 'accepted',
+    });
     final current = state.valueOrNull ?? [];
     state = AsyncData(
       current
-          .map((m) => m.id == messageId
-              ? m.copyWith(proposalStatus: 'accepted')
-              : m)
+          .map(
+            (m) =>
+                m.id == messageId ? m.copyWith(proposalStatus: 'accepted') : m,
+          )
           .toList(),
     );
   }
@@ -145,16 +164,16 @@ class ChatNotifier extends _$ChatNotifier {
 
   Future<void> rejectProposal(String messageId) async {
     final client = ref.read(apiClientProvider);
-    await client.patch(
-      '/api/recipes/$recipeId/chat/$messageId',
-      {'proposal_status': 'rejected'},
-    );
+    await client.patch('/api/recipes/$recipeId/chat/$messageId', {
+      'proposal_status': 'rejected',
+    });
     final current = state.valueOrNull ?? [];
     state = AsyncData(
       current
-          .map((m) => m.id == messageId
-              ? m.copyWith(proposalStatus: 'rejected')
-              : m)
+          .map(
+            (m) =>
+                m.id == messageId ? m.copyWith(proposalStatus: 'rejected') : m,
+          )
           .toList(),
     );
   }

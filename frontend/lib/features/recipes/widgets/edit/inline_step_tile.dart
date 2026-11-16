@@ -33,8 +33,7 @@ class _InlineStepTileState extends State<InlineStepTile> {
     super.initState();
     final s = widget.step;
     _desc = TextEditingController(text: s.description);
-    _duration =
-        TextEditingController(text: s.durationMin?.toString() ?? '');
+    _duration = TextEditingController(text: s.durationMin?.toString() ?? '');
     _tip = TextEditingController(text: s.tip ?? '');
   }
 
@@ -57,12 +56,14 @@ class _InlineStepTileState extends State<InlineStepTile> {
     super.dispose();
   }
 
-  void _notify() => widget.onChanged(RecipeStep(
-        order: widget.step.order,
-        description: _desc.text,
-        durationMin: int.tryParse(_duration.text),
-        tip: _tip.text.trim().isEmpty ? null : _tip.text.trim(),
-      ));
+  void _notify() => widget.onChanged(
+    RecipeStep(
+      order: widget.step.order,
+      description: _desc.text,
+      durationMin: int.tryParse(_duration.text),
+      tip: _tip.text.trim().isEmpty ? null : _tip.text.trim(),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -76,13 +77,18 @@ class _InlineStepTileState extends State<InlineStepTile> {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-                color: AppTheme.primary, shape: BoxShape.circle),
+              color: AppTheme.primary,
+              shape: BoxShape.circle,
+            ),
             child: Center(
-              child: Text('${widget.index + 1}',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14)),
+              child: Text(
+                '${widget.index + 1}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -92,8 +98,11 @@ class _InlineStepTileState extends State<InlineStepTile> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.timer_outlined,
-                        size: 13, color: AppTheme.textSecondary),
+                    const Icon(
+                      Icons.timer_outlined,
+                      size: 13,
+                      color: AppTheme.textSecondary,
+                    ),
                     const SizedBox(width: 3),
                     SizedBox(
                       width: 44,
@@ -101,14 +110,18 @@ class _InlineStepTileState extends State<InlineStepTile> {
                         controller: _duration,
                         onChanged: _notify,
                         keyboardType: TextInputType.number,
-                        style: theme.textTheme.labelSmall
-                            ?.copyWith(color: AppTheme.textSecondary),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppTheme.textSecondary,
+                        ),
                         hint: '0',
                       ),
                     ),
-                    Text(' Min',
-                        style: theme.textTheme.labelSmall
-                            ?.copyWith(color: AppTheme.textSecondary)),
+                    Text(
+                      ' Min',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
                     const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.close, size: 16),
@@ -136,13 +149,19 @@ class _InlineStepTileState extends State<InlineStepTile> {
                         controller: _tip,
                         onChanged: (_) => _notify(),
                         maxLines: null,
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(color: Colors.amber.shade800),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.amber.shade800,
+                        ),
                         decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.lightbulb_outline,
-                              size: 15, color: Colors.amber),
+                          prefixIcon: const Icon(
+                            Icons.lightbulb_outline,
+                            size: 15,
+                            color: Colors.amber,
+                          ),
                           prefixIconConstraints: const BoxConstraints(
-                              minWidth: 34, minHeight: 0),
+                            minWidth: 34,
+                            minHeight: 0,
+                          ),
                           hintText: 'Tipp hinzufügen...',
                           hintStyle: TextStyle(
                             fontSize: theme.textTheme.bodySmall?.fontSize,
@@ -156,7 +175,9 @@ class _InlineStepTileState extends State<InlineStepTile> {
                           fillColor: Colors.amber.withAlpha(30),
                           isDense: true,
                           contentPadding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 4),
+                            vertical: 10,
+                            horizontal: 4,
+                          ),
                         ),
                       ),
                     ),

@@ -20,12 +20,12 @@ class ChatEmptyState extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                strings.remyGreeting,
+                strings.chatGreeting,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const SizedBox(height: 4),
               Text(
-                strings.remySubtitle,
+                strings.chatSubtitle,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 12),
@@ -38,7 +38,7 @@ class ChatEmptyState extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                strings.remyFooter,
+                strings.chatFooter,
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),

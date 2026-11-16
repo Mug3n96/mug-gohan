@@ -84,9 +84,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
                         child: Text(
                           'Deine Rezepte',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
+                          style: Theme.of(context).textTheme.headlineMedium
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                       ),
@@ -96,14 +94,12 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                         child: Text(
                           '${filtered.length} ${filtered.length == 1 ? "Rezept" : "Rezepte"}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withAlpha(140)),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withAlpha(140),
+                              ),
                         ),
                       ),
                     ),

@@ -24,7 +24,9 @@ class AppTheme {
 
   static ColorScheme _buildScheme(Brightness brightness) {
     var scheme = ColorScheme.fromSeed(
-        seedColor: _seedColor, brightness: brightness);
+      seedColor: _seedColor,
+      brightness: brightness,
+    );
     if (_accentColor != null) {
       scheme = scheme.copyWith(
         secondary: _accentColor,
@@ -61,83 +63,98 @@ class AppTheme {
     final sans = GoogleFonts.interTextTheme(base);
     return sans.copyWith(
       displayLarge: serif.displayLarge?.copyWith(
-          fontWeight: FontWeight.w700, color: scheme.onSurface),
+        fontWeight: FontWeight.w700,
+        color: scheme.onSurface,
+      ),
       displayMedium: serif.displayMedium?.copyWith(
-          fontWeight: FontWeight.w700, color: scheme.onSurface),
+        fontWeight: FontWeight.w700,
+        color: scheme.onSurface,
+      ),
       displaySmall: serif.displaySmall?.copyWith(
-          fontWeight: FontWeight.w700, color: scheme.onSurface),
+        fontWeight: FontWeight.w700,
+        color: scheme.onSurface,
+      ),
       headlineLarge: serif.headlineLarge?.copyWith(
-          fontWeight: FontWeight.w700, color: scheme.onSurface),
+        fontWeight: FontWeight.w700,
+        color: scheme.onSurface,
+      ),
       headlineMedium: serif.headlineMedium?.copyWith(
-          fontWeight: FontWeight.w700, color: scheme.onSurface),
+        fontWeight: FontWeight.w700,
+        color: scheme.onSurface,
+      ),
       headlineSmall: serif.headlineSmall?.copyWith(
-          fontWeight: FontWeight.w700, color: scheme.onSurface),
+        fontWeight: FontWeight.w700,
+        color: scheme.onSurface,
+      ),
       titleLarge: serif.titleLarge?.copyWith(
-          fontWeight: FontWeight.w700, color: scheme.onSurface),
+        fontWeight: FontWeight.w700,
+        color: scheme.onSurface,
+      ),
       titleMedium: serif.titleMedium?.copyWith(
-          fontWeight: FontWeight.w700, color: scheme.onSurface),
+        fontWeight: FontWeight.w700,
+        color: scheme.onSurface,
+      ),
     );
   }
 
   static ThemeData _buildThemeData(ColorScheme scheme) => ThemeData(
-        useMaterial3: true,
-        colorScheme: scheme,
-        scaffoldBackgroundColor: scheme.surface,
-        textTheme: _buildTextTheme(scheme),
-        appBarTheme: AppBarTheme(
-          backgroundColor: scheme.surface,
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          centerTitle: false,
-          titleTextStyle: GoogleFonts.fraunces(
-            color: scheme.onSurface,
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-          ),
-          iconTheme: IconThemeData(color: scheme.onSurface),
+    useMaterial3: true,
+    colorScheme: scheme,
+    scaffoldBackgroundColor: scheme.surface,
+    textTheme: _buildTextTheme(scheme),
+    appBarTheme: AppBarTheme(
+      backgroundColor: scheme.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: false,
+      titleTextStyle: GoogleFonts.fraunces(
+        color: scheme.onSurface,
+        fontSize: 22,
+        fontWeight: FontWeight.w700,
+      ),
+      iconTheme: IconThemeData(color: scheme.onSurface),
+    ),
+    cardTheme: CardThemeData(
+      color: scheme.surfaceContainerLow,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(16)),
+        side: BorderSide(color: scheme.outlineVariant),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: scheme.surfaceContainerLow,
+      border: OutlineInputBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(12)),
+        borderSide: BorderSide(color: scheme.outlineVariant),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(12)),
+        borderSide: BorderSide(color: scheme.outlineVariant),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(12)),
+        borderSide: BorderSide(color: scheme.primary, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: scheme.primary,
+        foregroundColor: scheme.onPrimary,
+        minimumSize: const Size(double.infinity, 52),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
-        cardTheme: CardThemeData(
-          color: scheme.surfaceContainerLow,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(16)),
-            side: BorderSide(color: scheme.outlineVariant),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: scheme.surfaceContainerLow,
-          border: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(12)),
-            borderSide: BorderSide(color: scheme.outlineVariant),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(12)),
-            borderSide: BorderSide(color: scheme.outlineVariant),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(12)),
-            borderSide: BorderSide(color: scheme.primary, width: 2),
-          ),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        ),
-        filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            backgroundColor: scheme.primary,
-            foregroundColor: scheme.onPrimary,
-            minimumSize: const Size(double.infinity, 52),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(12)),
-            ),
-          ),
-        ),
-        bottomSheetTheme: BottomSheetThemeData(
-          backgroundColor: scheme.surface,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-        ),
-      );
+      ),
+    ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: scheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+    ),
+  );
 }

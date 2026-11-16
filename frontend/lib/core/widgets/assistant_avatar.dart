@@ -32,9 +32,14 @@ class AssistantAvatar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asset =
-        icon ? 'assets/icons/assistant_icon.svg' : 'assets/icons/assistant.svg';
-    final bundled = SvgPicture.asset(asset, height: size, colorFilter: colorFilter);
+    final asset = icon
+        ? 'assets/icons/assistant_icon.svg'
+        : 'assets/icons/assistant.svg';
+    final bundled = SvgPicture.asset(
+      asset,
+      height: size,
+      colorFilter: colorFilter,
+    );
 
     final features = ref.watch(appConfigProvider).features;
     final hasCustom = icon ? features.hasAvatarIcon : features.hasAvatar;

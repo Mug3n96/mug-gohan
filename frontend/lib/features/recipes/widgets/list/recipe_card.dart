@@ -315,9 +315,9 @@ class _Placeholder extends StatelessWidget {
               child: Text(
                 'Entwurf',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppTheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: AppTheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -335,28 +335,29 @@ class _MetaRow extends StatelessWidget {
     final chips = <Widget>[];
 
     if (recipe.prepTime.isNotEmpty || recipe.cookTime.isNotEmpty) {
-      chips.add(_Chip(
-        icon: Icons.schedule_outlined,
-        label: [recipe.prepTime, recipe.cookTime]
-            .where((s) => s.isNotEmpty)
-            .join(' + '),
-      ));
+      chips.add(
+        _Chip(
+          icon: Icons.schedule_outlined,
+          label: [
+            recipe.prepTime,
+            recipe.cookTime,
+          ].where((s) => s.isNotEmpty).join(' + '),
+        ),
+      );
     }
     if (recipe.portions > 0) {
-      chips.add(_Chip(
-        icon: Icons.person_outline,
-        label:
-            '${recipe.portions} ${recipe.portions == 1 ? 'Portion' : 'Portionen'}',
-      ));
+      chips.add(
+        _Chip(
+          icon: Icons.person_outline,
+          label:
+              '${recipe.portions} ${recipe.portions == 1 ? 'Portion' : 'Portionen'}',
+        ),
+      );
     }
 
     if (chips.isEmpty) return const SizedBox.shrink();
 
-    return Wrap(
-      spacing: 14,
-      runSpacing: 6,
-      children: chips,
-    );
+    return Wrap(spacing: 14, runSpacing: 6, children: chips);
   }
 }
 
@@ -376,10 +377,10 @@ class _Chip extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: scheme.onSurface.withAlpha(160),
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
+            color: scheme.onSurface.withAlpha(160),
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );

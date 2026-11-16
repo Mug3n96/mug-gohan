@@ -21,24 +21,26 @@ Future<bool> showDeleteRecipeDialog(
                 color: AppTheme.error.withValues(alpha: 0.10),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.delete_outline, size: 28, color: AppTheme.error),
+              child: Icon(
+                Icons.delete_outline,
+                size: 28,
+                color: AppTheme.error,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
               title,
-              style: Theme.of(ctx)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                ctx,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 6),
             Text(
               'Wird unwiderruflich gelöscht.',
-              style: Theme.of(ctx)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: AppTheme.textSecondary),
+              style: Theme.of(
+                ctx,
+              ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -65,9 +67,14 @@ Future<bool> showDeleteRecipeDialog(
                       borderRadius: BorderRadius.circular(50),
                       onTap: () => Navigator.pop(ctx, false),
                       child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 22, vertical: 11),
-                        child: Text('Abbrechen',
-                            style: TextStyle(fontWeight: FontWeight.w500)),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 22,
+                          vertical: 11,
+                        ),
+                        child: Text(
+                          'Abbrechen',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
                       ),
                     ),
                   ),
@@ -80,16 +87,26 @@ Future<bool> showDeleteRecipeDialog(
                       splashColor: Colors.white24,
                       onTap: () => Navigator.pop(ctx, true),
                       child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 22, vertical: 11),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 22,
+                          vertical: 11,
+                        ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.delete_outline, size: 16, color: Colors.white),
+                            Icon(
+                              Icons.delete_outline,
+                              size: 16,
+                              color: Colors.white,
+                            ),
                             SizedBox(width: 6),
-                            Text('Löschen',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600)),
+                            Text(
+                              'Löschen',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ],
                         ),
                       ),

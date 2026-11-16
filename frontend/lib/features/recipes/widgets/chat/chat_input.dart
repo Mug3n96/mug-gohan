@@ -65,8 +65,11 @@ class _ChatInputState extends State<ChatInput> {
               child: Row(
                 children: [
                   if (widget.pendingMime == 'application/pdf')
-                    Icon(Icons.picture_as_pdf,
-                        color: AppTheme.primaryLight, size: 36)
+                    Icon(
+                      Icons.picture_as_pdf,
+                      color: AppTheme.primaryLight,
+                      size: 36,
+                    )
                   else
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
@@ -120,7 +123,9 @@ class _ChatInputState extends State<ChatInput> {
                                 hintText: 'Nachricht...',
                                 isDense: true,
                                 contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 10),
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
                                 border: InputBorder.none,
                                 enabledBorder: InputBorder.none,
                                 focusedBorder: InputBorder.none,
@@ -137,9 +142,14 @@ class _ChatInputState extends State<ChatInput> {
                               onTap: widget.onPickCamera,
                               child: const Padding(
                                 padding: EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 12),
-                                child: Icon(Icons.camera_alt_outlined,
-                                    size: 20, color: AppTheme.textSecondary),
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                                child: Icon(
+                                  Icons.camera_alt_outlined,
+                                  size: 20,
+                                  color: AppTheme.textSecondary,
+                                ),
                               ),
                             ),
                           // File icon mit Popup-Menü
@@ -149,17 +159,21 @@ class _ChatInputState extends State<ChatInput> {
                               onTap: () async {
                                 final box =
                                     ctx.findRenderObject()! as RenderBox;
-                                final overlay = Navigator.of(ctx)
-                                    .overlay!
-                                    .context
-                                    .findRenderObject()! as RenderBox;
+                                final overlay =
+                                    Navigator.of(
+                                          ctx,
+                                        ).overlay!.context.findRenderObject()!
+                                        as RenderBox;
                                 final pos = RelativeRect.fromRect(
                                   Rect.fromPoints(
-                                    box.localToGlobal(Offset.zero,
-                                        ancestor: overlay),
                                     box.localToGlobal(
-                                        box.size.bottomRight(Offset.zero),
-                                        ancestor: overlay),
+                                      Offset.zero,
+                                      ancestor: overlay,
+                                    ),
+                                    box.localToGlobal(
+                                      box.size.bottomRight(Offset.zero),
+                                      ancestor: overlay,
+                                    ),
                                   ),
                                   Offset.zero & overlay.size,
                                 );
@@ -172,20 +186,26 @@ class _ChatInputState extends State<ChatInput> {
                                   items: const [
                                     PopupMenuItem(
                                       value: 'image',
-                                      child: Row(children: [
-                                        Icon(Icons.image_outlined, size: 18),
-                                        SizedBox(width: 10),
-                                        Text('Bild'),
-                                      ]),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.image_outlined, size: 18),
+                                          SizedBox(width: 10),
+                                          Text('Bild'),
+                                        ],
+                                      ),
                                     ),
                                     PopupMenuItem(
                                       value: 'pdf',
-                                      child: Row(children: [
-                                        Icon(Icons.picture_as_pdf_outlined,
-                                            size: 18),
-                                        SizedBox(width: 10),
-                                        Text('PDF'),
-                                      ]),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.picture_as_pdf_outlined,
+                                            size: 18,
+                                          ),
+                                          SizedBox(width: 10),
+                                          Text('PDF'),
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 );
@@ -194,9 +214,14 @@ class _ChatInputState extends State<ChatInput> {
                               },
                               child: const Padding(
                                 padding: EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 12),
-                                child: Icon(Icons.attach_file_rounded,
-                                    size: 20, color: AppTheme.textSecondary),
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                                child: Icon(
+                                  Icons.attach_file_rounded,
+                                  size: 20,
+                                  color: AppTheme.textSecondary,
+                                ),
                               ),
                             ),
                           ),
@@ -210,7 +235,8 @@ class _ChatInputState extends State<ChatInput> {
               ValueListenableBuilder<TextEditingValue>(
                 valueListenable: widget.controller,
                 builder: (context, value, _) {
-                  final hasContent = value.text.trim().isNotEmpty ||
+                  final hasContent =
+                      value.text.trim().isNotEmpty ||
                       widget.pendingImageBytes != null;
                   final showButton =
                       widget.sending || hasContent || widget.voiceEnabled;
@@ -229,7 +255,8 @@ class _ChatInputState extends State<ChatInput> {
                                   child: Padding(
                                     padding: EdgeInsets.all(10),
                                     child: CircularProgressIndicator(
-                                        strokeWidth: 2),
+                                      strokeWidth: 2,
+                                    ),
                                   ),
                                 )
                               else
@@ -237,14 +264,17 @@ class _ChatInputState extends State<ChatInput> {
                                   duration: const Duration(milliseconds: 200),
                                   transitionBuilder: (child, anim) =>
                                       ScaleTransition(
-                                          scale: anim, child: child),
+                                        scale: anim,
+                                        child: child,
+                                      ),
                                   child: hasContent
                                       ? IconButton.filled(
                                           key: const ValueKey('send'),
                                           onPressed: widget.onSend,
                                           icon: const Icon(
-                                              Icons.send_rounded,
-                                              size: 20),
+                                            Icons.send_rounded,
+                                            size: 20,
+                                          ),
                                           style: IconButton.styleFrom(
                                             backgroundColor:
                                                 AppTheme.primaryLight,

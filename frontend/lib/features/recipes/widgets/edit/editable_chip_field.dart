@@ -48,16 +48,14 @@ class _EditableChipFieldState extends State<EditableChipField> {
             borderRadius: BorderRadius.circular(100),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 120),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               color: _active
                   ? AppTheme.textSecondary.withAlpha(35)
                   : AppTheme.textSecondary.withAlpha(15),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(widget.icon,
-                      size: 14, color: AppTheme.textSecondary),
+                  Icon(widget.icon, size: 14, color: AppTheme.textSecondary),
                   const SizedBox(width: 4),
                   IntrinsicWidth(
                     child: TextField(
@@ -65,7 +63,9 @@ class _EditableChipFieldState extends State<EditableChipField> {
                       focusNode: _focus,
                       onChanged: (_) => widget.onChanged(),
                       style: const TextStyle(
-                          fontSize: 13, fontWeight: FontWeight.w500),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
                       decoration: InputDecoration(
                         hintText: widget.hint,
                         hintStyle: TextStyle(
