@@ -6,7 +6,7 @@ missing details and suggests changes you accept or reject.
 
 無限 (mugen) "unlimited" + ごはん (gohan) "meal".
 
-- Capture recipes from text, photos or voice
+- Capture recipes from text, photos, voice or YouTube links
 - Chat per recipe: edit, scale ("make it 500 g pasta"), get tips
 - Clean view mode for cooking, edit mode with chat
 - Single user, runs on a small VPS, web app + Android APK
@@ -84,6 +84,21 @@ Cloud without the Ollama container: remove the `ollama` service and `depends_on`
 then set `OLLAMA_HOST=https://ollama.com` and `OLLAMA_API_KEY` (from
 ollama.com/settings/keys).
 
+## YouTube links (optional)
+
+Paste a YouTube link into a recipe chat and the assistant builds the recipe from
+what is shown and said in the video. Needs a Gemini API key (free tier is enough
+for personal use, key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey)):
+
+```env
+GEMINI_API_KEY=your-key
+```
+
+Each video is analyzed **once** and the result is stored; follow-up messages
+and other recipes with the same link reuse the text, so there is no extra
+Gemini cost per chat message. Only public videos work. Without a key, links
+still show as thumbnails, but the assistant cannot see the video.
+
 ## Update
 
 ```bash
@@ -98,6 +113,8 @@ docker compose pull && docker compose up -d
 | `OLLAMA_HOST` | Ollama URL, default `http://ollama:11434` |
 | `OLLAMA_MODEL` | Model name, see above |
 | `OLLAMA_API_KEY` | Only for `OLLAMA_HOST=https://ollama.com` |
+| `GEMINI_API_KEY` | Optional, enables YouTube links |
+| `GEMINI_MODEL` | Default `gemini-3.1-flash-lite` |
 | `WHISPER_URL` | Optional Whisper server, enables voice input |
 
 **Look and assistant:** copy [`config.json.example`](config.json.example) to

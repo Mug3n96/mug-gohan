@@ -7,6 +7,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../models/chat_model.dart';
 import '../../providers/chat_provider.dart';
 import 'proposal_card.dart';
+import 'video_link_card.dart';
 
 class ChatMessageBubble extends ConsumerWidget {
   const ChatMessageBubble({
@@ -27,6 +28,7 @@ class ChatMessageBubble extends ConsumerWidget {
     final theme = Theme.of(context);
     final hasProposalCard =
         !isUser && (msg.proposal != null || msg.proposalStatus != null);
+    final text = msg.displayText;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -91,11 +93,16 @@ class ChatMessageBubble extends ConsumerWidget {
                             const Icon(Icons.broken_image, size: 40),
                       ),
                     ),
-                  if (msg.content.isNotEmpty) const SizedBox(height: 8),
+                  if (text.isNotEmpty || msg.video != null)
+                    const SizedBox(height: 8),
                 ],
-                if (msg.content.isNotEmpty)
+                if (msg.video != null) ...[
+                  VideoLinkCard(video: msg.video!, onDark: isUser),
+                  if (text.isNotEmpty) const SizedBox(height: 8),
+                ],
+                if (text.isNotEmpty)
                   Text(
-                    msg.content,
+                    text,
                     style: TextStyle(
                       color: isUser ? Colors.white : null,
                       fontSize: 14,

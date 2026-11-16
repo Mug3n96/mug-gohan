@@ -1,16 +1,20 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/database';
-import { ChatMessage, ChatMessageRow, RecipeRow, parseRecipe } from '../types';
+import { ChatMessageRow, RecipeRow, parseRecipe } from '../types';
 import { chatWithOllama, buildSystemPrompt, OllamaError, OllamaMessage } from '../services/ollama';
 import { parseLlmResponse } from '../services/parser';
+import { findYouTubeId } from '../services/youtube';
+import { getVideo, resolveVideo, toChatVideo, videoContext } from '../services/videos';
 
 const router = Router();
 
-function parseChatMessage(row: ChatMessageRow): ChatMessage {
+function parseChatMessage(row: ChatMessageRow) {
+  const video = row.video_id ? getVideo(row.video_id) : undefined;
   return {
     ...row,
     proposal: row.proposal ? JSON.parse(row.proposal) : null,
+    video: video ? toChatVideo(video) : null,
   };
 }
 
@@ -86,21 +90,31 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
   const userMsgId = uuidv4();
   const now = new Date().toISOString();
   const userContent = message?.trim() ?? '';
-  db.prepare('INSERT INTO chat_messages (id, recipe_id, role, content, proposal, image_data, image_mime, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-    .run(userMsgId, recipe.id, 'user', userContent, null, imageData ?? null, imageMime ?? null, now);
+  const videoId = findYouTubeId(userContent);
+  db.prepare('INSERT INTO chat_messages (id, recipe_id, role, content, proposal, image_data, image_mime, video_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(userMsgId, recipe.id, 'user', userContent, null, imageData ?? null, imageMime ?? null, videoId, now);
 
-  // Build message history for Ollama, including images on user messages
+  // A linked YouTube video is analyzed once (Gemini) and cached; from then on
+  // only the stored text goes to the LLM.
+  const resolved = videoId ? await resolveVideo(videoId) : null;
+
+  // Build message history for Ollama, including images and video analyses
   const history = db
     .prepare('SELECT * FROM chat_messages WHERE recipe_id = ? ORDER BY created_at ASC')
     .all(recipe.id) as ChatMessageRow[];
 
   const ollamaMessages: OllamaMessage[] = [
     { role: 'system', content: buildSystemPrompt(recipe) },
-    ...history.map(m => ({
-      role: m.role as 'user' | 'assistant',
-      content: m.content,
-      ...(m.role === 'user' && m.image_data ? { images: [m.image_data] } : {}),
-    })),
+    ...history.map(m => {
+      const video = m.video_id
+        ? m.id === userMsgId ? videoContext(resolved?.video, resolved?.problem) : videoContext(getVideo(m.video_id))
+        : '';
+      return {
+        role: m.role as 'user' | 'assistant',
+        content: m.content + video,
+        ...(m.role === 'user' && m.image_data ? { images: [m.image_data] } : {}),
+      };
+    }),
   ];
 
   try {
@@ -121,7 +135,12 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
     db.prepare('INSERT INTO chat_messages (id, recipe_id, role, content, proposal, created_at) VALUES (?, ?, ?, ?, ?, ?)')
       .run(assistantMsgId, recipe.id, 'assistant', text, proposal ? JSON.stringify(proposal) : null, new Date().toISOString());
 
-    res.json({ id: assistantMsgId, text, proposal });
+    res.json({
+      id: assistantMsgId,
+      text,
+      proposal,
+      user_video: resolved ? toChatVideo(resolved.video) : null,
+    });
   } catch (err) {
     const error = err as Error;
     console.error(error.message);

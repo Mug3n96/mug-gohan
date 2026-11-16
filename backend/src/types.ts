@@ -42,6 +42,26 @@ export interface ChatMessage {
   created_at: string;
   image_data: string | null;
   image_mime: string | null;
+  video_id: string | null;
+}
+
+/** Cached YouTube video: oEmbed title + one-time Gemini analysis. */
+export interface VideoRow {
+  id: string;
+  title: string | null;
+  author: string | null;
+  analysis: string | null;
+  analysis_model: string | null;
+  analyzed_at: string | null;
+  created_at: string;
+}
+
+export interface ChatVideo {
+  id: string;
+  url: string;
+  title: string | null;
+  thumbnail_url: string;
+  analyzed: boolean;
 }
 
 export type RecipeRow = Omit<Recipe, 'tags' | 'ingredients' | 'steps'> & {

@@ -41,6 +41,7 @@ class ChatNotifier extends _$ChatNotifier {
       createdAt: DateTime.now().toIso8601String(),
       imageData: imageData,
       imageMime: imageMime,
+      video: ChatVideo.fromText(message),
     );
     state = AsyncData([...current, optimisticUser]);
 
@@ -87,7 +88,16 @@ class ChatNotifier extends _$ChatNotifier {
         createdAt: DateTime.now().toIso8601String(),
       );
 
-      state = AsyncData([...updated, optimisticUser, assistantMsg]);
+      // The backend adds the video title once it has looked the link up.
+      final sentUser = data['user_video'] is Map<String, dynamic>
+          ? optimisticUser.copyWith(
+              video: ChatVideo.fromJson(
+                data['user_video'] as Map<String, dynamic>,
+              ),
+            )
+          : optimisticUser;
+
+      state = AsyncData([...updated, sentUser, assistantMsg]);
     } on ApiException catch (e) {
       final errorText = switch (e.statusCode) {
         402 =>

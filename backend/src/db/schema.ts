@@ -34,6 +34,17 @@ export function runMigrations(): void {
     );
 
     CREATE INDEX IF NOT EXISTS idx_chat_messages_recipe_id ON chat_messages(recipe_id);
+
+    -- One row per YouTube video; the Gemini analysis is reused across chats.
+    CREATE TABLE IF NOT EXISTS videos (
+      id             TEXT PRIMARY KEY,
+      title          TEXT,
+      author         TEXT,
+      analysis       TEXT,
+      analysis_model TEXT,
+      analyzed_at    TEXT,
+      created_at     TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
 
   // Add columns introduced after initial schema (safe to run multiple times)
@@ -56,6 +67,9 @@ export function runMigrations(): void {
   }
   if (!chatColNames.includes('image_mime')) {
     db.exec(`ALTER TABLE chat_messages ADD COLUMN image_mime TEXT`);
+  }
+  if (!chatColNames.includes('video_id')) {
+    db.exec(`ALTER TABLE chat_messages ADD COLUMN video_id TEXT`);
   }
 
   console.log('Database migrations complete');
