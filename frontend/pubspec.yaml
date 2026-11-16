@@ -20,6 +20,7 @@ dependencies:
   record: ^6.0.0
   google_fonts: ^6.2.1
   url_launcher: ^6.3.3
+  image: ^4.13.1
 
 dev_dependencies:
   flutter_test:

@@ -99,6 +99,9 @@ and other recipes with the same link reuse the text, so there is no extra
 Gemini cost per chat message. Only public videos work. Without a key, links
 still show as thumbnails, but the assistant cannot see the video.
 
+Under a linked video, "Als Rezeptbild übernehmen" offers the thumbnail and three
+scenes from the video as the recipe image (black bars are cut off).
+
 ## Update
 
 ```bash

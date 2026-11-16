@@ -7,6 +7,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../models/chat_model.dart';
 import '../../providers/chat_provider.dart';
 import 'proposal_card.dart';
+import 'video_frame_picker.dart';
 import 'video_link_card.dart';
 
 class ChatMessageBubble extends ConsumerWidget {
@@ -98,6 +99,20 @@ class ChatMessageBubble extends ConsumerWidget {
                 ],
                 if (msg.video != null) ...[
                   VideoLinkCard(video: msg.video!, onDark: isUser),
+                  TextButton.icon(
+                    onPressed: () => showVideoFramePicker(
+                      context,
+                      videoId: msg.video!.id,
+                      recipeId: recipeId,
+                    ),
+                    icon: const Icon(Icons.image_outlined, size: 18),
+                    label: const Text('Als Rezeptbild übernehmen'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: isUser ? Colors.white : null,
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
                   if (text.isNotEmpty) const SizedBox(height: 8),
                 ],
                 if (text.isNotEmpty)
