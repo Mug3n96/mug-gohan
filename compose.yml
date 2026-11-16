@@ -11,17 +11,13 @@ services:
     volumes:
       - ./data:/app/data
       - ./config.json:/app/config.json:ro
-      # Optional branding: drop favicon.png / avatar.svg / avatar-icon.svg
-      # into ./branding/ to override. Bundled defaults are used when absent.
       - ./branding:/app/branding:ro
     depends_on:
       ollama:
         condition: service_healthy
 
-  # ---------------------------------------------------------------------------
-  # Ollama – Option A: local container (default)
-  # ---------------------------------------------------------------------------
-  # Remove this service and the depends_on block in backend to use Option B instead.
+  # Not needed with OLLAMA_HOST=https://ollama.com: remove this service and
+  # the depends_on block above.
   ollama:
     image: ollama/ollama:latest
     restart: unless-stopped
@@ -34,19 +30,7 @@ services:
       retries: 10
       start_period: 30s
 
-  # ---------------------------------------------------------------------------
-  # Ollama – Option B: ollama.com cloud API (no local container)
-  # ---------------------------------------------------------------------------
-  # No Ollama container needed. Set in .env:
-  #   OLLAMA_HOST=https://ollama.com
-  #   OLLAMA_MODEL=gemma4:31b-cloud
-  #   OLLAMA_API_KEY=your-api-key   # from ollama.com/settings/keys
-  # Also remove the ollama service above and the depends_on block in backend.
-
-  # Whisper – optional voice transcription (enables mic button in chat)
-  # Uncomment this service and set WHISPER_URL=http://whisper:9000 in your .env to enable.
-  # Remove WHISPER_URL or leave it empty to disable voice input entirely.
-  # PAUSED — uncomment to re-enable (frees ~750 MB RAM while off).
+  # Optional voice input. Uncomment and set WHISPER_URL=http://whisper:9000.
   # whisper:
   #   image: onerahmet/openai-whisper-asr-webservice:latest
   #   restart: unless-stopped

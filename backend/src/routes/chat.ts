@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/database';
-import { ChatMessage, ChatMessageRow, Recipe, RecipeRow } from '../types';
-import { chatWithOllama, buildSystemPrompt, OllamaMessage } from '../services/ollama';
+import { ChatMessage, ChatMessageRow, RecipeRow, parseRecipe } from '../types';
+import { chatWithOllama, buildSystemPrompt, OllamaError, OllamaMessage } from '../services/ollama';
 import { parseLlmResponse } from '../services/parser';
 
 const router = Router();
@@ -11,15 +11,6 @@ function parseChatMessage(row: ChatMessageRow): ChatMessage {
   return {
     ...row,
     proposal: row.proposal ? JSON.parse(row.proposal) : null,
-  };
-}
-
-function parseRecipe(row: RecipeRow): Recipe {
-  return {
-    ...row,
-    tags: JSON.parse(row.tags),
-    ingredients: JSON.parse(row.ingredients),
-    steps: JSON.parse(row.steps),
   };
 }
 
@@ -114,9 +105,7 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
 
   try {
     const raw = await chatWithOllama(ollamaMessages);
-    console.log('=== LLM RAW RESPONSE ===\n', raw, '\n========================');
     const { text, proposal } = parseLlmResponse(raw);
-    console.log('Parsed proposal:', proposal ? 'YES' : 'null');
 
     // Auto-reject any previous unresolved proposals
     if (proposal) {
@@ -135,6 +124,13 @@ router.post('/:id/chat', async (req: Request, res: Response) => {
     res.json({ id: assistantMsgId, text, proposal });
   } catch (err) {
     const error = err as Error;
+    console.error(error.message);
+    // 402 = Ollama Cloud account is out of credits; pass it through so the
+    // frontend can tell the user instead of showing a generic error.
+    if (err instanceof OllamaError && err.status === 402) {
+      res.status(402).json({ error: 'Ollama Cloud: out of credits' });
+      return;
+    }
     res.status(502).json({ error: `Ollama unreachable: ${error.message}` });
   }
 });

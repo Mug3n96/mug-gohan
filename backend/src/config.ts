@@ -23,9 +23,9 @@ export interface AppConfig {
     appTitle: string;
     loginTitle: string;
     loginSubtitle: string;
-    remyGreeting: string;
-    remySubtitle: string;
-    remyFooter: string;
+    chatGreeting: string;
+    chatSubtitle: string;
+    chatFooter: string;
     listEmptyTitle: string;
     listEmptySubtitle: string;
     listCreateButton: string;
@@ -47,9 +47,9 @@ const DEFAULTS: AppConfig = {
     appTitle: 'mug-gohan',
     loginTitle: 'mug-gohan',
     loginSubtitle: '無限ごはん',
-    remyGreeting: 'Hey, ich bin Miso!',
-    remySubtitle: 'Lass uns zusammen Rezepte entwerfen',
-    remyFooter:
+    chatGreeting: 'Hey, ich bin Miso!',
+    chatSubtitle: 'Lass uns zusammen Rezepte entwerfen',
+    chatFooter:
       'Was für ein Rezept möchtest du entwerfen? Sende mir gerne Bilder, Notizen, Fotos oder eine Sprachnachricht und wir erstellen ein tolles Rezept!',
     listEmptyTitle: 'Noch keine Rezepte',
     listEmptySubtitle: 'Erstelle dein erstes Rezept\nund lass Miso dir helfen.',
@@ -66,11 +66,6 @@ const DEFAULTS: AppConfig = {
 };
 
 /**
- * Loads and returns the merged config. Read on each call so edits to
- * config.json take effect after a container restart without a rebuild.
- * Falls back to DEFAULTS if the file is missing or invalid.
- */
-/**
  * Persona / language may be written as a single string or as an array of lines
  * (joined with newlines) so config.json stays readable over multiple lines.
  */
@@ -80,6 +75,29 @@ function lines(value: unknown, fallback: string): string {
   return fallback;
 }
 
+/** Old config.json files used remy* keys for the chat empty-state texts. */
+const LEGACY_STRING_KEYS: Record<string, keyof AppConfig['strings']> = {
+  remyGreeting: 'chatGreeting',
+  remySubtitle: 'chatSubtitle',
+  remyFooter: 'chatFooter',
+};
+
+function migrateStrings(strings: Record<string, unknown> = {}): Record<string, unknown> {
+  const out = { ...strings };
+  for (const [legacy, key] of Object.entries(LEGACY_STRING_KEYS)) {
+    if (legacy in out) {
+      out[key] ??= out[legacy];
+      delete out[legacy];
+    }
+  }
+  return out;
+}
+
+/**
+ * Loads and returns the merged config. Read on each call so edits to
+ * config.json take effect after a container restart without a rebuild.
+ * Falls back to DEFAULTS if the file is missing or invalid.
+ */
 export function getConfig(): AppConfig {
   try {
     const raw = fs.readFileSync(CONFIG_PATH, 'utf-8');
@@ -87,7 +105,7 @@ export function getConfig(): AppConfig {
     const assistant = (user.assistant ?? {}) as Record<string, unknown>;
     return {
       theme: { ...DEFAULTS.theme, ...(user.theme ?? {}) },
-      strings: { ...DEFAULTS.strings, ...(user.strings ?? {}) },
+      strings: { ...DEFAULTS.strings, ...migrateStrings(user.strings) },
       assistant: {
         name: (assistant.name as string) ?? DEFAULTS.assistant.name,
         persona: lines(assistant.persona, DEFAULTS.assistant.persona),

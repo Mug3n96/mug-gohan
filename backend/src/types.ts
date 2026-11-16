@@ -53,3 +53,13 @@ export type RecipeRow = Omit<Recipe, 'tags' | 'ingredients' | 'steps'> & {
 export type ChatMessageRow = Omit<ChatMessage, 'proposal'> & {
   proposal: string | null;
 };
+
+/** Recipe rows store tags/ingredients/steps as JSON strings. */
+export function parseRecipe(row: RecipeRow): Recipe {
+  return {
+    ...row,
+    tags: JSON.parse(row.tags),
+    ingredients: JSON.parse(row.ingredients),
+    steps: JSON.parse(row.steps),
+  };
+}

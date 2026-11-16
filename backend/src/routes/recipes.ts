@@ -1,18 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/database';
-import { Recipe, RecipeRow } from '../types';
+import { Recipe, RecipeRow, parseRecipe } from '../types';
 
 const router = Router();
-
-function parseRecipe(row: RecipeRow): Recipe {
-  return {
-    ...row,
-    tags: JSON.parse(row.tags),
-    ingredients: JSON.parse(row.ingredients),
-    steps: JSON.parse(row.steps),
-  };
-}
 
 /**
  * @openapi

@@ -11,6 +11,12 @@ export interface OllamaMessage {
   images?: string[];  // raw base64, only on user messages
 }
 
+export class OllamaError extends Error {
+  constructor(public readonly status: number, body: string) {
+    super(`Ollama error ${status}: ${body}`);
+  }
+}
+
 export async function chatWithOllama(messages: OllamaMessage[]): Promise<string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -31,7 +37,7 @@ export async function chatWithOllama(messages: OllamaMessage[]): Promise<string>
   });
 
   if (!response.ok) {
-    throw new Error(`Ollama error: ${response.status} ${await response.text()}`);
+    throw new OllamaError(response.status, await response.text());
   }
 
   const data = await response.json() as { message: { content: string } };
@@ -68,10 +74,10 @@ OUTPUT FORMAT:
 ---END---
 
 EXAMPLE — image is unclear:
-Mon dieu, das Bild ist leider zu unscharf — ich sehe einen Kuchen, aber die Zutatenliste ist nicht lesbar. Gusteau sagte immer, man soll mit dem arbeiten, was man sieht. Was ist drin?
+Das Bild ist leider zu unscharf — ich sehe einen Kuchen, aber die Zutatenliste ist nicht lesbar. Welche Zutaten sind drin?
 
 EXAMPLE — some info missing:
-Voilà! Titel und Schritte habe ich übernommen — Colette würde sagen, fehlende Details sind keine Option. Für wie viele Portionen soll das Rezept reichen?
+Titel und Schritte habe ich übernommen. Für wie viele Portionen soll das Rezept reichen?
 ---PROPOSAL---
 {"title":"Apfelkuchen","description":"","portions":0,"prep_time":"","cook_time":"","difficulty":"mittel","cuisine":"","category":"Dessert","tags":[],"ingredients":[],"steps":[{"order":1,"description":"...","duration_min":10,"tip":""}],"notes":"","image_url":null,"status":"draft"}
 ---END---
